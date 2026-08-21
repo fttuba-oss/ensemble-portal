@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Secure portal for the CFA Ensemble Learning Programme curriculum planning and session logging." />
+  <title>CFA Ensemble Learning Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ==================== SIGN IN CONTAINER ==================== -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-header">
+        <svg class="login-logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+        <h1>CFA Ensemble Portal</h1>
+        <p class="muted small">Curriculum & Rehearsal Management System</p>
+      </div>
+      
+      <form id="loginForm" class="flex-column gap-14">
+        <div class="form-field">
+          <label for="loginRole">Portal User Role</label>
+          <select id="loginRole" class="input-control" required>
+            <option value="" disabled selected>-- Select Role --</option>
+            <option value="coordinator">Ensemble Coordinator</option>
+            <option value="tutor">Section Tutor</option>
+          </select>
+        </div>
+        
+        <!-- Hidden by default, toggled when Tutor is chosen -->
+        <div id="tutorFields" class="flex-column gap-14" style="display: none;">
+          <div class="form-field">
+            <label for="loginGroup">Ensemble Group</label>
+            <select id="loginGroup" class="input-control">
+              <option value="NUSSO">NUS Symphony Orchestra (NUSSO)</option>
+              <option value="NUSWS">NUS Wind Symphony (NUSWS)</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="loginSection">Instrument Section</label>
+            <select id="loginSection" class="input-control">
+              <!-- Populated dynamically based on chosen Group -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="loginPassword">Portal Security Key / Password</label>
+          <input type="password" id="loginPassword" class="input-control" placeholder="Enter security credentials" required />
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="margin-top: 8px;">Sign In to Portal</button>
+      </form>
+      <div class="login-footer">
+        <p class="xs muted">Authorized access only. Logins are encrypted and recorded locally.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN PORTAL INTERFACE ==================== -->
+  <div class="app-layout" id="appLayout" style="display: none;">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <h2 id="sidebarTitle">NUSSO & NUSWS</h2>
+        <span id="sidebarSubtitle" class="badge">Curriculum Workspace</span>
+      </div>
+      
+      <nav class="sidebar-nav" id="sidebarNav" aria-label="Main Navigation">
+        <!-- Renders dynamically based on role -->
+      </nav>
+      
+      <div class="sidebar-footer">
+        <button class="btn btn-sm btn-outline btn-block text-red" id="signOutBtn" style="margin-bottom: 12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; margin-right: 6px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Sign Out
+        </button>
+        <p class="xs text-muted" style="text-align: center;">CFA Learning Tracker v2.1</p>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Content -->
+    <main class="app-content" id="appContent">
+      <header class="content-header">
+        <div>
+          <p class="eyebrow" id="headerEyebrow">NUS CENTRE FOR THE ARTS</p>
+          <h1 class="title" id="headerTitle">Dashboard Overview</h1>
+        </div>
+        <div id="headerGroupIndicator" class="header-action-zone">
+          <!-- Group indicator switches for Coordinators -->
+        </div>
+      </header>
+
+      <!-- Viewports Panel Container -->
+      <div class="viewport-panels">
+
+        <!-- ==================== COORDINATOR VIEWPORTS ==================== -->
+
+        <!-- 1. Coordinator Overview Panel -->
+        <section id="coord-overview" class="panel">
+          <div class="metrics-grid">
+            <div class="metric-card bg-glass">
+              <div class="metric-icon val-red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              </div>
+              <div class="metric-body">
+                <div class="label">Requires Development</div>
+                <div class="value text-red" id="metricRequires">0</div>
+              </div>
+            </div>
+            <div class="metric-card bg-glass">
+              <div class="metric-icon val-yellow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              </div>
+              <div class="metric-body">
+                <div class="label">Progressing</div>
+                <div class="value text-yellow" id="metricProgressing">0</div>
+              </div>
+            </div>
+            <div class="metric-card bg-glass">
+              <div class="metric-icon val-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              </div>
+              <div class="metric-body">
+                <div class="label">Demonstrated</div>
+                <div class="value text-green" id="metricDemonstrated">0</div>
+              </div>
+            </div>
+            <div class="metric-card bg-glass">
+              <div class="metric-icon val-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              </div>
+              <div class="metric-body">
+                <div class="label">Total Logs Logged</div>
+                <div class="value text-blue" id="metricTotalLogs">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-layout grid-2-1">
+            <!-- Left: Curated Synthesis & Performance Tracker -->
+            <div class="flex-column gap-16">
+              <article class="dashboard-card bg-glass animate-fade-in">
+                <div class="card-header">
+                  <div class="flex-row items-center gap-10">
+                    <span class="pulse-dot"></span>
+                    <h2>Curated Rehearsal & Learning Synthesis</h2>
+                  </div>
+                  <span class="badge badge-accent">This Week's Snapshot</span>
+                </div>
+                <p class="synthesis-text" id="synthesisContent">
+                  Select a group from the header to view specific curriculum intelligence updates...
+                </p>
+                <div id="moreSynthesis" class="synthesis-details" hidden>
+                  <p>In-depth structural breakdown of rehearsal progress shows high focus on woodwind pitch sync. Brass sectionals require higher alignment on volume dynamics in tutti transitions.</p>
+                </div>
+                <div class="card-footer">
+                  <button id="toggleSynthesis" class="btn btn-outline">Read full detailed synthesis</button>
+                </div>
+              </article>
+
+              <!-- Curated Priorities Area -->
+              <section class="dashboard-card bg-glass">
+                <div class="card-header-actions">
+                  <h2>Active Section Priorities</h2>
+                  <div class="filter-controls">
+                    <select id="overviewSectionFilter" class="select-control"><option value="all">All Sections</option></select>
+                    <select id="overviewDomainFilter" class="select-control">
+                      <option value="all">All Domains</option>
+                      <option value="Intonation and Sound">Intonation & Sound</option>
+                      <option value="Rhythmic Accuracy">Rhythmic Accuracy</option>
+                      <option value="Articulation">Articulation</option>
+                      <option value="Ensemble Coordination">Ensemble Coordination</option>
+                      <option value="Balance and Blend">Balance & Blend</option>
+                      <option value="Interpretation and Musical Expression">Interpretation & Expression</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="table-container" style="margin-top: 14px;">
+                  <div class="priorities-table" id="prioritiesTable">
+                    <!-- Loaded dynamically via JS -->
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Right: Learning Progress charts -->
+            <div class="flex-column gap-16">
+              <article class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Learning Progress by Domain</h2>
+                </div>
+                <div class="progress-bar-container" id="domainProgressList">
+                  <!-- Generated Dynamically -->
+                </div>
+              </article>
+              
+              <article class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Rehearsal Database Search & Analysis</h2>
+                </div>
+                <p class="muted small mb-12">Search or query sectional milestones, concerns, or historical progression trends.</p>
+                <div class="flex-column gap-10">
+                  <input type="text" id="dbQueryInput" class="input-control" placeholder="E.g., Which sections are struggling with intonation?" />
+                  <button id="searchDbBtn" class="btn btn-primary">Run Database Query</button>
+                </div>
+                <div id="queryResponsePanel" class="ai-box" hidden></div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Coordinator Syllabus & Objectives Panel -->
+        <section id="coord-syllabus" class="panel">
+          <div class="grid-layout grid-1-2">
+            <!-- Left Form: Create Objectives -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <h2>Set Learning Objective</h2>
+              </div>
+              <form id="syllabusForm" class="flex-column gap-14">
+                <div class="form-field">
+                  <label for="syllabusGroup">Ensemble Group</label>
+                  <select id="syllabusGroup" class="input-control" required>
+                    <option value="NUSSO">NUSSO (Symphony Orchestra)</option>
+                    <option value="NUSWS">NUSWS (Wind Symphony)</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="syllabusSection">Target Section</label>
+                  <select id="syllabusSection" class="input-control" required>
+                    <!-- Populated dynamically based on Group -->
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="syllabusPieceSelect">Target Repertoire</label>
+                  <select id="syllabusPieceSelect" class="input-control" required></select>
+                  <input type="text" id="syllabusPieceCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
+                </div>
+                <div class="form-field">
+                  <label for="syllabusLocation">Specific Locations (Bars / Mvt)</label>
+                  <input type="text" id="syllabusLocation" class="input-control" placeholder="e.g. Mvt III, bars 50-82" required />
+                </div>
+                <div class="form-field">
+                  <label for="syllabusDomain">Learning Domain</label>
+                  <select id="syllabusDomain" class="input-control" required>
+                    <option>Intonation and Sound</option>
+                    <option>Rhythmic Accuracy</option>
+                    <option>Articulation</option>
+                    <option>Ensemble Coordination</option>
+                    <option>Balance and Blend</option>
+                    <option>Interpretation and Musical Expression</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="syllabusNotes">Pedagogical Directives & Objectives</label>
+                  <textarea id="syllabusNotes" class="textarea-control" placeholder="Details: Worked notes, focus pacing, specific techniques to drill..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Establish Curriculum Directive</button>
+              </form>
+            </div>
+
+            <!-- Right: Current Syllabus Objectives List -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header-actions">
+                <h2>Active Curriculum Directives</h2>
+                <span class="badge" id="syllabusCountBadge">0 Directives Active</span>
+              </div>
+              <div class="flex-column gap-12" id="syllabusList" style="margin-top: 14px;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Coordinator Tutti Feedback Panel -->
+        <section id="coord-tutti" class="panel">
+          <div class="grid-layout grid-1-2">
+            <!-- Left Form: Create Feedback -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <h2>Record Tutti Rehearsal Feedback</h2>
+              </div>
+              <p class="muted small mb-12">Log specific feedback points that tutors should read and address in their sectionals.</p>
+              <form id="tuttiFeedbackForm" class="flex-column gap-14">
+                <div class="form-field">
+                  <label for="tuttiGroup">Ensemble Group</label>
+                  <select id="tuttiGroup" class="input-control" required>
+                    <option value="NUSSO">NUSSO (Symphony Orchestra)</option>
+                    <option value="NUSWS">NUSWS (Wind Symphony)</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="tuttiSection">Target Section</label>
+                  <select id="tuttiSection" class="input-control" required>
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="tuttiRepertoireSelect">Repertoire Reference</label>
+                  <select id="tuttiRepertoireSelect" class="input-control" required></select>
+                  <input type="text" id="tuttiRepertoireCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
+                </div>
+                <div class="form-field">
+                  <label for="tuttiStatus">Urgency / Action Priority</label>
+                  <select id="tuttiStatus" class="input-control" required>
+                    <option value="Requires further development">High Priority (Requires Development)</option>
+                    <option value="Progressing">Medium Priority (Progressing)</option>
+                    <option value="Demonstrated">Completed (Demonstrated)</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="tuttiContent">Feedback & Coordinator Notes</label>
+                  <textarea id="tuttiContent" class="textarea-control" placeholder="Enter comments here on what failed in the tutti and what needs to be addressed in the sectional session." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Publish Tutti Feedback</button>
+              </form>
+            </div>
+
+            <!-- Right List: Rehearsal Feedbacks -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <h2>Published Tutti Feedbacks Archive</h2>
+              </div>
+              <div class="flex-column gap-12" id="tuttiFeedbacksList" style="margin-top: 14px;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Coordinator Global Logs Explorer Panel -->
+        <section id="coord-explorer" class="panel">
+          <div class="dashboard-card bg-glass">
+            <div class="card-header-actions flex-wrap gap-12">
+              <div>
+                <h2>Tutor Rehearsal & Sectional Logs</h2>
+                <p class="muted small">Overview of all logs submitted by the woodwind, brass, percussion and string tutors.</p>
+              </div>
+              <div class="filter-controls">
+                <input type="text" id="explorerSearch" class="input-control" placeholder="Search logs, details..." />
+                <select id="explorerGroupFilter" class="select-control">
+                  <option value="all">All Groups</option>
+                  <option value="NUSSO">NUSSO</option>
+                  <option value="NUSWS">NUSWS</option>
+                </select>
+                <select id="explorerSectionFilter" class="select-control">
+                  <option value="all">All Sections</option>
+                </select>
+              </div>
+            </div>
+            <div class="logs-feed" id="explorerLogsList" style="margin-top: 18px;">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==================== TUTOR VIEWPORTS ==================== -->
+
+        <!-- 1. Tutor Sectional Overview & Hub Panel -->
+        <section id="tutor-hub" class="panel">
+          <!-- Notice alert if there is critical Tutti Feedback from coordinator -->
+          <div id="tutorTuttiAlertContainer"></div>
+
+          <div class="grid-layout grid-2-1">
+            <!-- Left: Objectives for my Section -->
+            <div class="flex-column gap-16">
+              <div class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Syllabus Objectives for Your Section</h2>
+                </div>
+                <p class="muted small">High-level goals assigned to your section by the program coordinators.</p>
+                <div class="flex-column gap-12" id="tutorSectionObjectives" style="margin-top: 14px;">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Tutti Feedback for my Section -->
+            <div class="flex-column gap-16">
+              <div class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Tutti Feedback Archive</h2>
+                </div>
+                <p class="muted small">Coordinator feedback points matching your section.</p>
+                <div class="flex-column gap-12" id="tutorTuttiFeedbacks" style="margin-top: 14px;">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Tutor Lesson Planner Panel -->
+        <section id="tutor-planner" class="panel">
+          <div class="grid-layout grid-1-2">
+            <!-- Plan Form -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <h2>Draft Sectional Lesson Plan</h2>
+              </div>
+              <p class="muted small mb-12">Plan your upcoming section rehearsal according to curriculum priorities.</p>
+              <form id="lessonPlanForm" class="flex-column gap-14">
+                <div class="form-field">
+                  <label for="planRepertoireSelect">Target Repertoire</label>
+                  <select id="planRepertoireSelect" class="input-control" required></select>
+                  <input type="text" id="planRepertoireCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
+                </div>
+                <div class="form-field">
+                  <label for="planLocation">Location (Bars / Movements)</label>
+                  <input type="text" id="planLocation" class="input-control" placeholder="e.g. Mvt I, bars 57-72" required />
+                </div>
+                <div class="form-field">
+                  <label for="planFocus">Lesson Core Focus & Domain</label>
+                  <select id="planDomain" class="input-control" required>
+                    <option>Intonation and Sound</option>
+                    <option>Rhythmic Accuracy</option>
+                    <option>Articulation</option>
+                    <option>Ensemble Coordination</option>
+                    <option>Balance and Blend</option>
+                    <option>Interpretation and Musical Expression</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="planStrategy">Pedagogical Strategy & Exercises</label>
+                  <textarea id="planStrategy" class="textarea-control" placeholder="e.g. Slow metronome matching, breathing support drills, staggered entries..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Rehearsal Plan</button>
+              </form>
+            </div>
+
+            <!-- Existing Plans List -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <h2>Your Section Lesson Plans</h2>
+              </div>
+              <div class="flex-column gap-12" id="tutorPlansList" style="margin-top: 14px;">
+                <!-- Dynamic content -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Tutor Session Logger Panel -->
+        <section id="tutor-logger" class="panel">
+          <div class="grid-layout grid-1-2">
+            <!-- Form to log session -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <h2>Log Sectional Session Outcome</h2>
+              </div>
+              <p class="muted small mb-12">Detail the result of your recent sectional rehearsal. This log is sent to the coordinators.</p>
+              <form id="sessionLogForm" class="flex-column gap-14">
+                <div class="form-field">
+                  <label for="logRepertoireSelect">Repertoire Rehearsed</label>
+                  <select id="logRepertoireSelect" class="input-control" required></select>
+                  <input type="text" id="logRepertoireCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
+                </div>
+                <div class="form-field">
+                  <label for="logDomain">Main Learning Domain Addressed</label>
+                  <select id="logDomain" class="input-control" required>
+                    <option>Intonation and Sound</option>
+                    <option>Rhythmic Accuracy</option>
+                    <option>Articulation</option>
+                    <option>Ensemble Coordination</option>
+                    <option>Balance and Blend</option>
+                    <option>Interpretation and Musical Expression</option>
+                  </select>
+                </div>
+                
+                <div class="grid-2 gap-10">
+                  <div class="form-field">
+                    <label for="logIntonation">Intonation Rating (1-5)</label>
+                    <select id="logIntonation" class="input-control" required>
+                      <option value="1">1 - Severe Issues</option>
+                      <option value="2">2 - Needs Work</option>
+                      <option value="3">3 - Acceptable</option>
+                      <option value="4">4 - Good Control</option>
+                      <option value="5">5 - Near Perfect</option>
+                    </select>
+                  </div>
+                  <div class="form-field">
+                    <label for="logCoordination">Ensemble Cohesion (1-5)</label>
+                    <select id="logCoordination" class="input-control" required>
+                      <option value="1">1 - Out of Sync</option>
+                      <option value="2">2 - Rough Transitions</option>
+                      <option value="3">3 - Solid Alignment</option>
+                      <option value="4">4 - Very Good</option>
+                      <option value="5">5 - Perfectly Unified</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label for="logLevel">Attainment Level Status</label>
+                  <select id="logLevel" class="input-control" required>
+                    <option value="Requires further development">Requires further development</option>
+                    <option value="Progressing">Progressing</option>
+                    <option value="Demonstrated">Demonstrated</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="logObservations">Observations & Rehearsal Evidence</label>
+                  <textarea id="logObservations" class="textarea-control" placeholder="Detail notes, e.g., 'Metronome tempo 104 reached. Intonation stable in lower register but flutes sharp at top...' " required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Session Log</button>
+              </form>
+            </div>
+
+            <!-- Pre-fill from active plan assistant -->
+            <div class="flex-column gap-16">
+              <div class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Link to Section Lesson Plan</h2>
+                </div>
+                <p class="muted small mb-12">Select an existing rehearsal plan to pre-fill the form above with the repertoire and target focus.</p>
+                <div class="flex-column gap-10" id="tutorLoggerPlanSelector">
+                  <!-- Populated dynamically with action buttons to "Fill Repertoire & Domain" -->
+                </div>
+              </div>
+
+              <div class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Logging Guide</h2>
+                </div>
+                <ul class="bullet-list small muted">
+                  <li>Ensure your logs address priorities set by the coordinators.</li>
+                  <li>Mention exact dynamic levels, pitch corrections, or tempo variations used.</li>
+                  <li>Your logs are directly aggregated into the coordinator dashboard so they can adjust the next tutti schedule.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Tutor Logs Archive Panel -->
+        <section id="tutor-logs" class="panel">
+          <div class="dashboard-card bg-glass">
+            <div class="card-header">
+              <h2>Your Section's Log Archive</h2>
+            </div>
+            <p class="muted small mb-14">History of all session logs submitted for your instrument section. These logs are only accessible to you and coordinators.</p>
+            <div class="flex-column gap-12" id="tutorLogsList">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
