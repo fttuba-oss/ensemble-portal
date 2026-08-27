@@ -160,6 +160,33 @@ const SEED_REPERTOIRE = [
   { id: 'rep-5', title: 'Holst Suite in F', group: 'NUSWS' }
 ];
 
+const SEED_STUDENT_REFLECTIONS = [
+  {
+    id: 'ref-1',
+    group: 'NUSSO',
+    section: 'Horn',
+    logId: 'log-1',
+    piece: 'New Work (bars 113–128)',
+    rating: 3,
+    challenges: 'Struggled to maintain pitch stability in high register when playing pianissimo.',
+    content: 'The long-tone practice with drone support was helpful, but I need to do more embouchure relaxation exercises.',
+    studentName: 'Alex Tan',
+    createdAt: '2026-08-21'
+  },
+  {
+    id: 'ref-2',
+    group: 'NUSSO',
+    section: 'Trumpet',
+    logId: 'log-2',
+    piece: 'First Suite (Mvt I · 57–72)',
+    rating: 4,
+    challenges: 'Matching length of staccatos with woodwind section.',
+    content: 'Slow practice really helped lock in the tempo. Ready for the next tutti rehearsal.',
+    studentName: 'Chloe Lim',
+    createdAt: '2026-08-21'
+  }
+];
+
 // 2. LocalStorage Database Wrapper
 class DB {
   static get(key, seed = []) {
@@ -181,6 +208,7 @@ class DB {
     this.get('lesson_plans', SEED_LESSON_PLANS);
     this.get('session_logs', SEED_SESSION_LOGS);
     this.get('repertoire', SEED_REPERTOIRE);
+    this.get('student_reflections', SEED_STUDENT_REFLECTIONS);
   }
 
   static reset() {
@@ -189,6 +217,7 @@ class DB {
     localStorage.removeItem('cfa_db_lesson_plans');
     localStorage.removeItem('cfa_db_session_logs');
     localStorage.removeItem('cfa_db_repertoire');
+    localStorage.removeItem('cfa_db_student_reflections');
     this.init();
   }
 }
@@ -198,7 +227,7 @@ DB.init();
 
 // 3. Application State (Logged user persists in localStorage session cache)
 const state = {
-  activeUser: null, // { role: 'coordinator'|'tutor', group: 'NUSSO'|'NUSWS', section: string|null }
+  activeUser: null, // { role: 'coordinator'|'tutor'|'student', group: 'NUSSO'|'NUSWS', section: string|null }
   activePanel: 'coord-overview',
   activeCoordinatorGroup: 'NUSSO', // Filters overview workspace for coordinators
 };
@@ -296,6 +325,25 @@ const dom = {
   
   // Tutor Logs Archive Elements
   tutorLogsList: document.getElementById('tutorLogsList'),
+
+  // Tutor student reflections
+  tutorStudentReflectionsList: document.getElementById('tutorStudentReflectionsList'),
+
+  // Coordinator reflections
+  coordReflectionsSearch: document.getElementById('coordReflectionsSearch'),
+  coordReflectionsSectionFilter: document.getElementById('coordReflectionsSectionFilter'),
+  coordReflectionsList: document.getElementById('coordReflectionsList'),
+
+  // Student viewport elements
+  studentTutorLogsList: document.getElementById('studentTutorLogsList'),
+  studentSyllabusList: document.getElementById('studentSyllabusList'),
+  studentReflectionForm: document.getElementById('studentReflectionForm'),
+  reflectorLogSelect: document.getElementById('reflectorLogSelect'),
+  reflectorName: document.getElementById('reflectorName'),
+  reflectorRating: document.getElementById('reflectorRating'),
+  reflectorChallenges: document.getElementById('reflectorChallenges'),
+  reflectorContent: document.getElementById('reflectorContent'),
+  studentReflectionsList: document.getElementById('studentReflectionsList'),
 };
 
 // 5. App Core Initializer
@@ -331,9 +379,9 @@ function showPortalInterface() {
 
 // Setup Event Listeners
 function setupEventListeners() {
-  // Login Role Change triggers Tutor sections
+  // Login Role Change triggers Tutor/Student sections
   dom.loginRole.addEventListener('change', (e) => {
-    if (e.target.value === 'tutor') {
+    if (e.target.value === 'tutor' || e.target.value === 'student') {
       dom.tutorFields.style.display = 'flex';
       populateFormSections(dom.loginGroup.value, dom.loginSection);
     } else {
@@ -381,6 +429,7 @@ function setupEventListeners() {
   dom.tuttiFeedbackForm.addEventListener('submit', handleTuttiSubmit);
   dom.lessonPlanForm.addEventListener('submit', handleLessonPlanSubmit);
   dom.sessionLogForm.addEventListener('submit', handleSessionLogSubmit);
+  dom.studentReflectionForm.addEventListener('submit', handleStudentReflectionSubmit);
 
   // Filter Event Handlers
   dom.overviewSectionFilter.addEventListener('change', renderOverviewPriorities);
@@ -388,6 +437,8 @@ function setupEventListeners() {
   dom.explorerGroupFilter.addEventListener('change', handleExplorerFiltersChange);
   dom.explorerSectionFilter.addEventListener('change', renderGlobalLogsExplorer);
   dom.explorerSearch.addEventListener('input', renderGlobalLogsExplorer);
+  dom.coordReflectionsSectionFilter.addEventListener('change', renderCoordinatorReflections);
+  dom.coordReflectionsSearch.addEventListener('input', renderCoordinatorReflections);
 }
 
 // Login verification logic
@@ -444,6 +495,10 @@ function syncIdentity() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         Tutti Rehearsal Feedback
       </a>
+      <a class="nav-item" data-panel="coord-reflections">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        Student Reflections
+      </a>
       <a class="nav-item" data-panel="coord-explorer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         Logs Explorer
@@ -470,7 +525,7 @@ function syncIdentity() {
     // Set active panel to default coordinator overview
     switchPanel('coord-overview');
 
-  } else {
+  } else if (u.role === 'tutor') {
     // Tutor view Setup
     dom.sidebarTitle.textContent = u.group;
     dom.sidebarSubtitle.textContent = `${u.section} Sectional`;
@@ -504,6 +559,32 @@ function syncIdentity() {
     populateRepertoireDropdown(u.group, dom.logRepertoireSelect, dom.logRepertoireCustom);
 
     switchPanel('tutor-hub');
+  } else if (u.role === 'student') {
+    // Student view Setup
+    dom.sidebarTitle.textContent = u.group;
+    dom.sidebarSubtitle.textContent = `${u.section} Student`;
+
+    // Set up Student Sidebar Navigation
+    dom.sidebarNav.innerHTML = `
+      <a class="nav-item active" data-panel="student-hub">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Student Hub
+      </a>
+      <a class="nav-item" data-panel="student-reflector">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        Submit Reflection
+      </a>
+      <a class="nav-item" data-panel="student-reflections">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Reflection History
+      </a>
+    `;
+
+    // Hard-lock group switcher in header to simple badge text
+    dom.headerGroupIndicator.style.display = 'flex';
+    dom.headerGroupIndicator.innerHTML = `<span class="badge badge-accent">${u.group} · ${u.section} STUDENT</span>`;
+
+    switchPanel('student-hub');
   }
 
   // Bind panel clicks for sidebar items
@@ -543,10 +624,14 @@ function updateHeaderContent(panelId) {
     'coord-syllabus': { title: 'Curriculum & Objectives', eyebrow: 'Coordinator Portal · Syllabus Management' },
     'coord-tutti': { title: 'Tutti Rehearsal Feedback', eyebrow: 'Coordinator Portal · Rehearsal Direction' },
     'coord-explorer': { title: 'Tutor Logs Explorer', eyebrow: 'Coordinator Portal · Global Submissions' },
+    'coord-reflections': { title: 'Student Reflections Feed', eyebrow: 'Coordinator Portal · Student Feedback' },
     'tutor-hub': { title: 'Sectional Hub', eyebrow: `${u.group} · ${u.section} Workspace` },
     'tutor-planner': { title: 'Lesson Planner', eyebrow: `${u.group} · ${u.section} Workspace` },
     'tutor-logger': { title: 'Log Rehearsal Outcome', eyebrow: `${u.group} · ${u.section} Workspace` },
     'tutor-logs': { title: 'Section Logs Archive', eyebrow: `${u.group} · ${u.section} Workspace` },
+    'student-hub': { title: 'Student Hub', eyebrow: `${u.group} · ${u.section} Student Portal` },
+    'student-reflector': { title: 'Submit Reflection', eyebrow: `${u.group} · ${u.section} Student Portal` },
+    'student-reflections': { title: 'Reflection History', eyebrow: `${u.group} · ${u.section} Student Portal` },
   };
 
   if (labels[panelId]) {
@@ -571,6 +656,7 @@ function switchCoordinatorGroup(grp) {
   
   // Load new priorities select options
   populateSectionOptions(grp, dom.overviewSectionFilter);
+  populateSectionOptions(grp, dom.coordReflectionsSectionFilter);
   
   // Populate Repertoire dropdowns for the group
   populateRepertoireDropdown(grp, dom.syllabusPieceSelect, dom.syllabusPieceCustom);
@@ -611,6 +697,11 @@ function renderCurrentViewportData() {
       populateSectionOptions(dom.explorerGroupFilter.value === 'all' ? 'NUSSO' : dom.explorerGroupFilter.value, dom.explorerSectionFilter);
     }
     renderGlobalLogsExplorer();
+  } else if (panel === 'coord-reflections') {
+    if (dom.coordReflectionsSectionFilter.children.length <= 1) {
+      populateSectionOptions(state.activeCoordinatorGroup, dom.coordReflectionsSectionFilter);
+    }
+    renderCoordinatorReflections();
   } else if (panel === 'tutor-hub') {
     renderTutorHub();
   } else if (panel === 'tutor-planner') {
@@ -619,6 +710,12 @@ function renderCurrentViewportData() {
     renderTutorLoggerAssistant();
   } else if (panel === 'tutor-logs') {
     renderTutorLogsArchive();
+  } else if (panel === 'student-hub') {
+    renderStudentHub();
+  } else if (panel === 'student-reflector') {
+    renderStudentReflector();
+  } else if (panel === 'student-reflections') {
+    renderStudentReflectionsArchive();
   }
 }
 
@@ -986,6 +1083,26 @@ function renderTutorHub() {
       `;
     }).join('');
   }
+
+  // Student Reflections Feed
+  const reflections = DB.get('student_reflections').filter(r => r.group === u.group && r.section === u.section);
+  if (reflections.length === 0) {
+    dom.tutorStudentReflectionsList.innerHTML = `<p class="muted small">No student reflections logged for your section yet.</p>`;
+  } else {
+    dom.tutorStudentReflectionsList.innerHTML = reflections.map(r => `
+      <div class="item-card bg-glass" style="margin-top: 8px;">
+        <div class="item-card-header">
+          <strong>${r.piece}</strong>
+          <span class="badge badge-accent">Confidence: ${r.rating}/5</span>
+        </div>
+        <div class="item-card-meta">
+          Submitted by: <strong>${r.studentName}</strong> on ${r.createdAt}
+        </div>
+        <p class="small" style="margin-top: 6px;"><strong>Challenges:</strong> ${r.challenges}</p>
+        <p class="small" style="font-style: italic; margin-top: 4px;">"${r.content}"</p>
+      </div>
+    `).join('');
+  }
 }
 
 // == Tutor Lesson Planner ==
@@ -1297,10 +1414,12 @@ function handleDatabaseQuery() {
   const logs = DB.get('session_logs');
   const syllabus = DB.get('syllabus');
   const feedback = DB.get('tutti_feedback');
+  const reflections = DB.get('student_reflections');
   
   let matchLogs = [];
   let matchSyllabus = [];
   let matchFeedback = [];
+  let matchReflections = [];
   
   const keywords = query.split(' ').filter(k => k.length > 2);
   
@@ -1324,11 +1443,19 @@ function handleDatabaseQuery() {
       f.content.toLowerCase().includes(k) ||
       f.section.toLowerCase().includes(k)
     ));
+
+    matchReflections = reflections.filter(r => keywords.some(k =>
+      r.piece.toLowerCase().includes(k) ||
+      r.challenges.toLowerCase().includes(k) ||
+      r.content.toLowerCase().includes(k) ||
+      r.studentName.toLowerCase().includes(k) ||
+      r.section.toLowerCase().includes(k)
+    ));
   }
   
   dom.queryResponsePanel.hidden = false;
   
-  if (matchLogs.length === 0 && matchSyllabus.length === 0 && matchFeedback.length === 0) {
+  if (matchLogs.length === 0 && matchSyllabus.length === 0 && matchFeedback.length === 0 && matchReflections.length === 0) {
     dom.queryResponsePanel.innerHTML = `
       <strong>No database records found matching these criteria.</strong><br>
       <span class="small muted">Try querying terms like: "Horn", "Clarinet", "Intonation", "First Suite", "Requires development".</span>
@@ -1359,6 +1486,14 @@ function handleDatabaseQuery() {
     html += `• <strong>${matchLogs.length} Sectional Log Submission(s) Located:</strong><br>`;
     matchLogs.forEach(l => {
       html += `<span class="xs muted">[${l.group} ${l.section}]</span> Progress: ${l.status} - <em>"${l.observations.slice(0, 80)}..."</em><br>`;
+    });
+    html += `<br>`;
+  }
+
+  if (matchReflections.length > 0) {
+    html += `• <strong>${matchReflections.length} Student Reflection(s) Located:</strong><br>`;
+    matchReflections.forEach(r => {
+      html += `<span class="xs muted">[${r.group} ${r.section} - ${r.studentName}]</span> Confidence: ${r.rating}/5 - <em>"${r.content.slice(0, 80)}..."</em><br>`;
     });
   }
   
@@ -1410,6 +1545,240 @@ function getSubmittedRepertoire(selectEl, customEl, group) {
   }
   return selectEl.value;
 }
+
+// == Student Hub ==
+function renderStudentHub() {
+  const u = state.activeUser;
+  if (!u) return;
+
+  // 1. Render coordinator objectives
+  const syllabus = DB.get('syllabus').filter(item => item.group === u.group && item.section === u.section);
+  if (syllabus.length === 0) {
+    dom.studentSyllabusList.innerHTML = `<p class="muted small">No objectives currently set by coordinators for the ${u.section} section.</p>`;
+  } else {
+    dom.studentSyllabusList.innerHTML = syllabus.map(item => `
+      <div class="item-card bg-glass animate-fade-in">
+        <div class="item-card-header">
+          <strong class="item-card-title">${item.piece}</strong>
+          <span class="badge badge-accent">${item.domain}</span>
+        </div>
+        <p class="small">${item.notes}</p>
+        <div class="xs muted">Target: ${item.location} · Assigned: ${item.createdAt}</div>
+      </div>
+    `).join('');
+  }
+
+  // 2. Render tutor session logs
+  const logs = DB.get('session_logs').filter(log => log.group === u.group && log.section === u.section);
+  if (logs.length === 0) {
+    dom.studentTutorLogsList.innerHTML = `<p class="muted small">No recent rehearsals logged by your section tutor.</p>`;
+  } else {
+    dom.studentTutorLogsList.innerHTML = logs.map(log => `
+      <div class="item-card bg-glass animate-fade-in">
+        <div class="item-card-header">
+          <strong class="item-card-title">${log.piece}</strong>
+          <button class="btn btn-xs btn-primary" onclick="prefillStudentReflector('${log.id}')">Reflect on this Rehearsal</button>
+        </div>
+        <div class="item-card-meta">
+          Domain: <strong>${log.domain}</strong> · Status: <span class="badge ${log.status === 'Requires further development' ? 'badge-red' : log.status === 'Demonstrated' ? 'badge-green' : 'badge-yellow'}">${log.status}</span>
+        </div>
+        <p class="item-card-body small">${log.observations}</p>
+        <div class="xs muted">Logged on: ${log.createdAt}</div>
+      </div>
+    `).join('');
+  }
+}
+
+// Prefill student reflection form and redirect
+window.prefillStudentReflector = function(logId) {
+  const u = state.activeUser;
+  if (!u) return;
+  
+  // Set panel active in sidebar
+  const navItems = dom.sidebarNav.querySelectorAll('.nav-item');
+  navItems.forEach(b => b.classList.remove('active'));
+  const btnReflector = dom.sidebarNav.querySelector('[data-panel="student-reflector"]');
+  if (btnReflector) btnReflector.classList.add('active');
+  
+  switchPanel('student-reflector');
+  
+  // Render reflector log selector options
+  renderStudentReflector();
+  
+  // Pre-select logId
+  dom.reflectorLogSelect.value = logId;
+};
+
+// == Student Reflection Form ==
+function renderStudentReflector() {
+  const u = state.activeUser;
+  if (!u) return;
+
+  const logs = DB.get('session_logs').filter(log => log.group === u.group && log.section === u.section);
+  dom.reflectorLogSelect.innerHTML = `
+    <option value="" disabled selected>-- Select Rehearsal Log --</option>
+    ${logs.map(log => `<option value="${log.id}">${log.piece} (${log.createdAt})</option>`).join('')}
+  `;
+}
+
+// Handle Student Reflection Form Submit
+function handleStudentReflectionSubmit(e) {
+  e.preventDefault();
+  const u = state.activeUser;
+  if (!u) return;
+
+  const logId = dom.reflectorLogSelect.value;
+  const logs = DB.get('session_logs');
+  const matchedLog = logs.find(l => l.id === logId);
+  
+  if (!matchedLog) {
+    alert('Please select a valid rehearsal session to reflect on.');
+    return;
+  }
+
+  const name = dom.reflectorName.value.trim() || 'Anonymous';
+  const rating = parseInt(dom.reflectorRating.value);
+  const challenges = dom.reflectorChallenges.value.trim();
+  const content = dom.reflectorContent.value.trim();
+
+  const newReflection = {
+    id: 'ref-' + Date.now(),
+    group: u.group,
+    section: u.section,
+    logId: logId,
+    piece: matchedLog.piece,
+    rating: rating,
+    challenges: challenges,
+    content: content,
+    studentName: name,
+    createdAt: new Date().toISOString().split('T')[0]
+  };
+
+  const reflections = DB.get('student_reflections');
+  reflections.push(newReflection);
+  DB.set('student_reflections', reflections);
+
+  // Clear Form
+  dom.reflectorLogSelect.value = '';
+  dom.reflectorName.value = '';
+  dom.reflectorRating.value = '3';
+  dom.reflectorChallenges.value = '';
+  dom.reflectorContent.value = '';
+
+  // Redirect to Reflection History
+  const navItems = dom.sidebarNav.querySelectorAll('.nav-item');
+  navItems.forEach(b => b.classList.remove('active'));
+  const btnHistory = dom.sidebarNav.querySelector('[data-panel="student-reflections"]');
+  if (btnHistory) btnHistory.classList.add('active');
+  
+  switchPanel('student-reflections');
+  alert('Reflection submitted successfully!');
+}
+
+// == Student Reflections Archive ==
+function renderStudentReflectionsArchive() {
+  const u = state.activeUser;
+  if (!u) return;
+
+  const reflections = DB.get('student_reflections').filter(r => r.group === u.group && r.section === u.section);
+  
+  if (reflections.length === 0) {
+    dom.studentReflectionsList.innerHTML = `<p class="muted small">No submitted reflections found for your section.</p>`;
+    return;
+  }
+
+  dom.studentReflectionsList.innerHTML = reflections.map(r => `
+    <div class="item-card bg-glass animate-fade-in">
+      <div class="item-card-header">
+        <strong class="item-card-title">${r.piece}</strong>
+        <div class="flex-row gap-10 items-center">
+          <span class="badge badge-accent">Confidence: ${r.rating}/5</span>
+          <button class="btn btn-xs btn-outline text-red" onclick="deleteStudentReflection('${r.id}')">Delete</button>
+        </div>
+      </div>
+      <div class="item-card-meta">
+        Submitted by: <strong>${r.studentName}</strong> on ${r.createdAt}
+      </div>
+      <div class="item-card-body small" style="background-color: rgba(0,0,0,0.01); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 8px;">
+        <div style="margin-bottom: 6px;"><strong>Key Challenges:</strong> <span class="muted">${r.challenges}</span></div>
+        <div><strong>Reflection:</strong> <em>"${r.content}"</em></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.deleteStudentReflection = function(id) {
+  if (confirm('Delete this reflection?')) {
+    const list = DB.get('student_reflections').filter(item => item.id !== id);
+    DB.set('student_reflections', list);
+    renderStudentReflectionsArchive();
+  }
+};
+
+// == Coordinator Reflections Feed ==
+function renderCoordinatorReflections() {
+  const group = state.activeCoordinatorGroup;
+  const reflections = DB.get('student_reflections');
+  const searchVal = dom.coordReflectionsSearch.value.toLowerCase();
+  const sectionFilter = dom.coordReflectionsSectionFilter.value;
+
+  // Filter for active group
+  let filtered = reflections.filter(r => r.group === group);
+
+  // Filter by selected section
+  if (sectionFilter !== 'all') {
+    filtered = filtered.filter(r => r.section === sectionFilter);
+  }
+
+  // Filter by search text
+  if (searchVal) {
+    filtered = filtered.filter(r => 
+      r.piece.toLowerCase().includes(searchVal) || 
+      r.challenges.toLowerCase().includes(searchVal) ||
+      r.content.toLowerCase().includes(searchVal) ||
+      r.studentName.toLowerCase().includes(searchVal) ||
+      r.section.toLowerCase().includes(searchVal)
+    );
+  }
+
+  filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  if (filtered.length === 0) {
+    dom.coordReflectionsList.innerHTML = `<p class="muted small">No student reflections found matching filters.</p>`;
+    return;
+  }
+
+  dom.coordReflectionsList.innerHTML = filtered.map(r => `
+    <article class="item-card bg-glass animate-fade-in">
+      <div class="item-card-header">
+        <div>
+          <span class="badge badge-accent" style="margin-right: 6px;">${r.group}</span>
+          <strong class="item-card-title">${r.section} Section Reflection</strong>
+        </div>
+        <div class="flex-row gap-10 items-center">
+          <span class="badge badge-accent">Confidence: ${r.rating}/5</span>
+          <button class="btn btn-xs btn-outline text-red" onclick="deleteCoordinatorReflection('${r.id}')">Delete</button>
+        </div>
+      </div>
+      <div class="item-card-meta">
+        Rehearsal piece: <strong>${r.piece}</strong> <br>
+        Submitted by: <strong>${r.studentName}</strong> on ${r.createdAt}
+      </div>
+      <div class="item-card-body small" style="background-color: rgba(255,255,255,0.01); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 8px;">
+        <div style="margin-bottom: 6px;"><strong>Challenges Faced:</strong> <span class="muted">${r.challenges}</span></div>
+        <div><strong>Reflection Content:</strong> <em>"${r.content}"</em></div>
+      </div>
+    </article>
+  `).join('');
+}
+
+window.deleteCoordinatorReflection = function(id) {
+  if (confirm('Delete this student reflection as Coordinator?')) {
+    const list = DB.get('student_reflections').filter(item => item.id !== id);
+    DB.set('student_reflections', list);
+    renderCoordinatorReflections();
+  }
+};
 
 // Kickstart on document load
 document.addEventListener('DOMContentLoaded', initApp);

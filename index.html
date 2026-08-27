@@ -28,6 +28,7 @@
             <option value="" disabled selected>-- Select Role --</option>
             <option value="coordinator">Ensemble Coordinator</option>
             <option value="tutor">Section Tutor</option>
+            <option value="student">Section Student</option>
           </select>
         </div>
         
@@ -361,6 +362,26 @@
           </div>
         </section>
 
+        <!-- 5. Coordinator Student Reflections Panel -->
+        <section id="coord-reflections" class="panel">
+          <div class="dashboard-card bg-glass">
+            <div class="card-header-actions flex-wrap gap-12">
+              <div>
+                <h2>Student Reflections Feed</h2>
+                <p class="muted small">Review section-specific feedback, confidence scores, and learning bottlenecks directly from students.</p>
+              </div>
+              <div class="filter-controls">
+                <input type="text" id="coordReflectionsSearch" class="input-control" placeholder="Search reflections..." />
+                <select id="coordReflectionsSectionFilter" class="select-control">
+                  <option value="all">All Sections</option>
+                </select>
+              </div>
+            </div>
+            <div class="logs-feed" id="coordReflectionsList" style="margin-top: 18px;">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+        </section>
 
         <!-- ==================== TUTOR VIEWPORTS ==================== -->
 
@@ -379,6 +400,17 @@
                 <p class="muted small">High-level goals assigned to your section by the program coordinators.</p>
                 <div class="flex-column gap-12" id="tutorSectionObjectives" style="margin-top: 14px;">
                   <!-- Dynamic content -->
+                </div>
+              </div>
+              
+              <!-- Student Reflections Feed -->
+              <div class="dashboard-card bg-glass" style="margin-top: 16px;">
+                <div class="card-header">
+                  <h2>Student Reflections Feed</h2>
+                </div>
+                <p class="muted small">Direct insights and challenges shared by section students after rehearsal sessions.</p>
+                <div class="flex-column gap-12" id="tutorStudentReflectionsList" style="margin-top: 14px;">
+                  <!-- Populated dynamically -->
                 </div>
               </div>
             </div>
@@ -549,6 +581,109 @@
             </div>
             <p class="muted small mb-14">History of all session logs submitted for your instrument section. These logs are only accessible to you and coordinators.</p>
             <div class="flex-column gap-12" id="tutorLogsList">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== STUDENT VIEWPORTS ==================== -->
+        <!-- 1. Student Overview Hub -->
+        <section id="student-hub" class="panel">
+          <div class="grid-layout grid-2-1">
+            <!-- Left: Tutor's Recent Session Logs -->
+            <div class="flex-column gap-16">
+              <div class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Recent Rehearsals & Sectional Logs</h2>
+                </div>
+                <p class="muted small">Select a sectional rehearsal logged by your tutor to submit your personal reflection.</p>
+                <div class="flex-column gap-12" id="studentTutorLogsList" style="margin-top: 14px;">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+            </div>
+            
+            <!-- Right: Coordinator Objectives -->
+            <div class="flex-column gap-16">
+              <div class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Section Syllabus Goals</h2>
+                </div>
+                <p class="muted small">Active learning objectives assigned by program coordinators.</p>
+                <div class="flex-column gap-12" id="studentSyllabusList" style="margin-top: 14px;">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Student Reflection Form -->
+        <section id="student-reflector" class="panel">
+          <div class="grid-layout grid-1-2">
+            <!-- Left: Form to submit reflection -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <h2>Submit Lesson Reflection</h2>
+              </div>
+              <p class="muted small mb-12">Submit your reflection to share your learning progression and challenges with your tutor.</p>
+              <form id="studentReflectionForm" class="flex-column gap-14">
+                <div class="form-field">
+                  <label for="reflectorLogSelect">Select Rehearsal Session</label>
+                  <select id="reflectorLogSelect" class="input-control" required>
+                    <!-- Populated dynamically with tutor session logs -->
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="reflectorName">Your Name (Optional)</label>
+                  <input type="text" id="reflectorName" class="input-control" placeholder="e.g. Alex Tan (or leave blank for anonymous)" />
+                </div>
+                <div class="form-field">
+                  <label for="reflectorRating">Personal Progress / Confidence (1-5)</label>
+                  <select id="reflectorRating" class="input-control" required>
+                    <option value="1">1 - Struggled completely / Lost</option>
+                    <option value="2">2 - Need substantial practice</option>
+                    <option value="3">3 - Okay / Basic grasp</option>
+                    <option value="4">4 - Confident / Good progression</option>
+                    <option value="5">5 - Fully mastered / Fluent</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="reflectorChallenges">Technical Challenges & Questions</label>
+                  <textarea id="reflectorChallenges" class="textarea-control" placeholder="What specific bars, rhythms, or techniques were difficult? Any questions for your tutor?" required></textarea>
+                </div>
+                <div class="form-field">
+                  <label for="reflectorContent">General Reflection & Next Steps</label>
+                  <textarea id="reflectorContent" class="textarea-control" placeholder="Detail your general takeaway, how you practiced, and your focus area before the next tutti rehearsal..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Reflection</button>
+              </form>
+            </div>
+
+            <!-- Right: Logging Guide for Students -->
+            <div class="flex-column gap-16">
+              <div class="dashboard-card bg-glass">
+                <div class="card-header">
+                  <h2>Reflection Guide</h2>
+                </div>
+                <ul class="bullet-list small muted">
+                  <li>Be honest about your technical progress. It helps tutors tailor future sectionals.</li>
+                  <li>Reference specific bar numbers or pieces where possible.</li>
+                  <li>Tutors and coordinators review reflections to adapt rehearsal paces and targets.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Student Reflections History Archive -->
+        <section id="student-reflections" class="panel">
+          <div class="dashboard-card bg-glass">
+            <div class="card-header">
+              <h2>Your Section's Reflection History</h2>
+            </div>
+            <p class="muted small mb-14">A record of reflections submitted by students in your section to support joint learning outcomes.</p>
+            <div class="flex-column gap-12" id="studentReflectionsList">
               <!-- Dynamic content -->
             </div>
           </div>
