@@ -171,15 +171,6 @@
                   <h2>Active Section Priorities</h2>
                   <div class="filter-controls">
                     <select id="overviewSectionFilter" class="select-control"><option value="all">All Sections</option></select>
-                    <select id="overviewDomainFilter" class="select-control">
-                      <option value="all">All Domains</option>
-                      <option value="Intonation and Sound">Intonation & Sound</option>
-                      <option value="Rhythmic Accuracy">Rhythmic Accuracy</option>
-                      <option value="Articulation">Articulation</option>
-                      <option value="Ensemble Coordination">Ensemble Coordination</option>
-                      <option value="Balance and Blend">Balance & Blend</option>
-                      <option value="Interpretation and Musical Expression">Interpretation & Expression</option>
-                    </select>
                   </div>
                 </div>
                 
@@ -191,16 +182,8 @@
               </section>
             </div>
 
-            <!-- Right: Learning Progress charts -->
+            <!-- Right: Database Search -->
             <div class="flex-column gap-16">
-              <article class="dashboard-card bg-glass">
-                <div class="card-header">
-                  <h2>Learning Progress by Domain</h2>
-                </div>
-                <div class="progress-bar-container" id="domainProgressList">
-                  <!-- Generated Dynamically -->
-                </div>
-              </article>
               
               <article class="dashboard-card bg-glass">
                 <div class="card-header">
@@ -391,17 +374,7 @@
                   <label for="planLocation">Location (Bars / Movements)</label>
                   <input type="text" id="planLocation" class="input-control" placeholder="e.g. Mvt I, bars 57-72" required />
                 </div>
-                <div class="form-field">
-                  <label for="planFocus">Lesson Core Focus & Domain</label>
-                  <select id="planDomain" class="input-control" required>
-                    <option>Intonation and Sound</option>
-                    <option>Rhythmic Accuracy</option>
-                    <option>Articulation</option>
-                    <option>Ensemble Coordination</option>
-                    <option>Balance and Blend</option>
-                    <option>Interpretation and Musical Expression</option>
-                  </select>
-                </div>
+
                 <div class="form-field">
                   <label for="planStrategy">Pedagogical Strategy & Exercises</label>
                   <textarea id="planStrategy" class="textarea-control" placeholder="e.g. Slow metronome matching, breathing support drills, staggered entries..." required></textarea>
@@ -437,17 +410,7 @@
                   <select id="logRepertoireSelect" class="input-control" required></select>
                   <input type="text" id="logRepertoireCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
                 </div>
-                <div class="form-field">
-                  <label for="logDomain">Main Learning Domain Addressed</label>
-                  <select id="logDomain" class="input-control" required>
-                    <option>Intonation and Sound</option>
-                    <option>Rhythmic Accuracy</option>
-                    <option>Articulation</option>
-                    <option>Ensemble Coordination</option>
-                    <option>Balance and Blend</option>
-                    <option>Interpretation and Musical Expression</option>
-                  </select>
-                </div>
+
                 
                 <div class="form-field">
                   <label for="logCoordination">Ensemble Cohesion (1-5)</label>

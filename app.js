@@ -28,7 +28,6 @@ const SEED_TUTTI_REHEARSALS = [
         id: 'obs-1',
         group: 'NUSSO',
         section: 'Horn',
-        domain: 'Intonation and Sound',
         content: 'Unstable pitch and tuning drift during unison shifts in the Intermezzo (bars 24-32). Tutors, please review breath support.',
         status: 'Requires attention'
       },
@@ -36,7 +35,6 @@ const SEED_TUTTI_REHEARSALS = [
         id: 'obs-2',
         group: 'NUSSO',
         section: 'Trumpet',
-        domain: 'Articulation',
         content: 'Double-tonguing articulation needs to be crisper to match woodwind attacks in the Aragonaise (bars 57-72).',
         status: 'In Progress'
       }
@@ -52,7 +50,6 @@ const SEED_TUTTI_REHEARSALS = [
         id: 'obs-3',
         group: 'NUSWS',
         section: 'Clarinet',
-        domain: 'Rhythmic Accuracy',
         content: 'Syncopated passages must align precisely with the percussion section (Mvt III · bars 142–150). Practice subdivision of eighth notes.',
         status: 'Requires attention'
       },
@@ -60,7 +57,6 @@ const SEED_TUTTI_REHEARSALS = [
         id: 'obs-4',
         group: 'NUSSO',
         section: 'Percussion',
-        domain: 'Ensemble Coordination',
         content: 'Snare principal should conduct transition cues more visibly during tutti tempo changes (bar 221).',
         status: 'Resolved'
       }
@@ -75,7 +71,6 @@ const SEED_LESSON_PLANS = [
     section: 'Horn',
     piece: 'New Work',
     location: 'Mvt II · 113–128',
-    domain: 'Intonation and Sound',
     strategy: 'Will practice playing these chords slow and out of context, checking pitch accuracy with drone cues. Work on physical posture and breath flow.',
     createdAt: '2026-08-19'
   },
@@ -85,7 +80,6 @@ const SEED_LESSON_PLANS = [
     section: 'Trumpet',
     piece: 'First Suite',
     location: 'Mvt I · 57-72',
-    domain: 'Articulation',
     strategy: 'Start sectional with slow metronome (tempo 80) matching length of notes. Slowly ramp up by 4bpm increments to target speed.',
     createdAt: '2026-08-20'
   }
@@ -97,8 +91,6 @@ const SEED_SESSION_LOGS = [
     group: 'NUSSO',
     section: 'Horn',
     piece: 'New Work (bars 113–128)',
-    domain: 'Intonation and Sound',
-    intonation: 2,
     coordination: 3,
     status: 'Requires further development',
     observations: 'Worked on unison notes. Pitch stability remains inconsistent after two sectional sessions. Horns are tending sharp on the top register. Need to focus on embouchure relaxation.',
@@ -109,8 +101,6 @@ const SEED_SESSION_LOGS = [
     group: 'NUSSO',
     section: 'Trumpet',
     piece: 'First Suite (Mvt I · 57–72)',
-    domain: 'Articulation',
-    intonation: 4,
     coordination: 4,
     status: 'Progressing',
     observations: 'Improved consistency in repeated quavers. Worked with slow metronome and matched note length. Not yet fully stable at performance tempo, but ready for tutti integration.',
@@ -121,8 +111,6 @@ const SEED_SESSION_LOGS = [
     group: 'NUSWS',
     section: 'Clarinet',
     piece: 'First Suite (142–150)',
-    domain: 'Rhythmic Accuracy',
-    intonation: 4,
     coordination: 5,
     status: 'Demonstrated',
     observations: 'Syncopation rhythm demonstrated perfectly. Tutors and students aligned to percussion downbeats. Tempo is highly stable.',
@@ -239,9 +227,7 @@ const dom = {
   moreSynthesis: document.getElementById('moreSynthesis'),
   toggleSynthesis: document.getElementById('toggleSynthesis'),
   overviewSectionFilter: document.getElementById('overviewSectionFilter'),
-  overviewDomainFilter: document.getElementById('overviewDomainFilter'),
   prioritiesTable: document.getElementById('prioritiesTable'),
-  domainProgressList: document.getElementById('domainProgressList'),
   dbQueryInput: document.getElementById('dbQueryInput'),
   searchDbBtn: document.getElementById('searchDbBtn'),
   queryResponsePanel: document.getElementById('queryResponsePanel'),
@@ -272,7 +258,6 @@ const dom = {
   planRepertoireSelect: document.getElementById('planRepertoireSelect'),
   planRepertoireCustom: document.getElementById('planRepertoireCustom'),
   planLocation: document.getElementById('planLocation'),
-  planDomain: document.getElementById('planDomain'),
   planStrategy: document.getElementById('planStrategy'),
   tutorPlansList: document.getElementById('tutorPlansList'),
   
@@ -280,7 +265,6 @@ const dom = {
   sessionLogForm: document.getElementById('sessionLogForm'),
   logRepertoireSelect: document.getElementById('logRepertoireSelect'),
   logRepertoireCustom: document.getElementById('logRepertoireCustom'),
-  logDomain: document.getElementById('logDomain'),
   logCoordination: document.getElementById('logCoordination'),
   logLevel: document.getElementById('logLevel'),
   logObservations: document.getElementById('logObservations'),
@@ -390,7 +374,6 @@ function setupEventListeners() {
 
   // Filter Event Handlers
   dom.overviewSectionFilter.addEventListener('change', renderOverviewPriorities);
-  dom.overviewDomainFilter.addEventListener('change', renderOverviewPriorities);
   dom.explorerGroupFilter.addEventListener('change', handleExplorerFiltersChange);
   dom.explorerSectionFilter.addEventListener('change', renderGlobalLogsExplorer);
   dom.explorerSearch.addEventListener('input', renderGlobalLogsExplorer);
@@ -637,7 +620,6 @@ function renderCurrentViewportData() {
   if (panel === 'coord-overview') {
     renderOverviewMetrics();
     renderOverviewPriorities();
-    renderDomainCharts();
     renderOverviewSynthesis();
   } else if (panel === 'coord-notes') {
     renderCoordinatorNotes();
@@ -746,9 +728,7 @@ function renderOverviewSynthesis() {
 function renderOverviewPriorities() {
   const logs = DB.get('session_logs');
   const group = state.activeCoordinatorGroup;
-  
   const sectionFilter = dom.overviewSectionFilter.value;
-  const domainFilter = dom.overviewDomainFilter.value;
   
   // Filter for active group
   let filtered = logs.filter(log => log.group === group);
@@ -756,11 +736,6 @@ function renderOverviewPriorities() {
   // Filter by selected section
   if (sectionFilter !== 'all') {
     filtered = filtered.filter(l => l.section === sectionFilter);
-  }
-  
-  // Filter by learning domain
-  if (domainFilter !== 'all') {
-    filtered = filtered.filter(l => l.domain === domainFilter);
   }
   
   // Sort latest first
@@ -780,7 +755,7 @@ function renderOverviewPriorities() {
       <div class="table-row">
         <div>
           <div class="row-primary-text">${item.section} · ${item.piece}</div>
-          <div class="row-sub-text">${item.domain} · ${item.createdAt}</div>
+          <div class="row-sub-text">${item.createdAt}</div>
           <div class="small muted" style="margin-top: 6px; font-style: italic;">"${item.observations}"</div>
         </div>
         <span class="badge ${badgeClass}">${item.status}</span>
@@ -789,41 +764,7 @@ function renderOverviewPriorities() {
   }).join('');
 }
 
-function renderDomainCharts() {
-  const logs = DB.get('session_logs').filter(l => l.group === state.activeCoordinatorGroup);
-  
-  const domains = [
-    { name: 'Technical Proficiency', color: 'fill-indigo' },
-    { name: 'Intonation and Sound', color: 'fill-cyan' },
-    { name: 'Rhythmic Accuracy', color: 'fill-emerald' },
-    { name: 'Ensemble Coordination', color: 'fill-amber' },
-    { name: 'Interpretation and Musical Expression', color: 'fill-rose' }
-  ];
-  
-  dom.domainProgressList.innerHTML = domains.map(domItem => {
-    const domLogs = logs.filter(l => l.domain === domItem.name);
-    let progressPercentage = 30; // Default baseline placeholder
-    
-    if (domLogs.length > 0) {
-      const demCount = domLogs.filter(l => l.status === 'Demonstrated').length;
-      const progCount = domLogs.filter(l => l.status === 'Progressing').length;
-      progressPercentage = Math.round(((demCount * 1.0 + progCount * 0.5) / domLogs.length) * 100);
-      progressPercentage = Math.max(15, Math.min(progressPercentage, 100));
-    }
-    
-    return `
-      <div class="progress-item">
-        <div class="progress-header">
-          <span>${domItem.name}</span>
-          <span class="muted">${progressPercentage}% Corrective Stability</span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill ${domItem.color}" style="width: ${progressPercentage}%"></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
+
 
 // == Conductor Tutti Rehearsal Notes ==
 function createObservationRow(group = 'NUSSO', section = '', domain = 'Intonation and Sound', content = '') {
@@ -917,7 +858,7 @@ function renderCoordinatorNotes() {
           return `
             <div class="table-row justify-between" style="padding: 6px 8px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem;">
               <div style="flex: 1; padding-right: 12px;">
-                <strong class="text-cyan">[${obs.group} ${obs.section}]</strong> (${obs.domain})<br>
+                <strong class="text-cyan">[${obs.group} ${obs.section}]</strong><br>
                 <span class="muted">${obs.content}</span>
               </div>
               <span class="badge ${statusClass}" style="align-self: center;">${obs.status}</span>
@@ -956,8 +897,7 @@ function renderGlobalLogsExplorer() {
     filtered = filtered.filter(l => 
       l.piece.toLowerCase().includes(searchVal) || 
       l.observations.toLowerCase().includes(searchVal) ||
-      l.section.toLowerCase().includes(searchVal) ||
-      l.domain.toLowerCase().includes(searchVal)
+      l.section.toLowerCase().includes(searchVal)
     );
   }
   
@@ -983,8 +923,7 @@ function renderGlobalLogsExplorer() {
           <span class="badge ${statusClass}">${log.status}</span>
         </div>
         <div class="item-card-meta">
-          Repertoire focus: <strong>${log.piece}</strong> <br>
-          Learning Domain: <strong>${log.domain}</strong>
+          Repertoire focus: <strong>${log.piece}</strong>
         </div>
         <div class="item-card-body">
           <p>${log.observations}</p>
@@ -1066,9 +1005,7 @@ function renderTutorHub() {
               ${obs.status !== 'Resolved' ? `<button class="btn btn-xs btn-primary" onclick="prefillPlannerFromObservation('${obs.id}')">Plan Sectional</button>` : ''}
             </div>
           </div>
-          <div class="item-card-meta">
-            Domain: <strong>${obs.domain}</strong>
-          </div>
+
           <p class="small" style="margin-top: 6px;"><strong>Conductor's Feedback:</strong><br> ${obs.content}</p>
           <div class="xs muted" style="margin-top: 8px; font-style: italic; border-top: 1px dashed var(--border-subtle); padding-top: 4px;">
             General Rehearsal Context: "${obs.generalSummary.slice(0, 120)}..."
@@ -1118,7 +1055,7 @@ function renderTutorPlansList() {
         <strong class="item-card-title">${plan.piece} (${plan.location})</strong>
         <button class="btn btn-xs btn-outline text-red" onclick="deleteLessonPlan('${plan.id}')">Delete</button>
       </div>
-      <div><span class="badge">${plan.domain}</span></div>
+
       <p class="item-card-body small" style="background-color: rgba(0,0,0,0.03); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">${plan.strategy}</p>
       <div class="xs muted">Plan established: ${plan.createdAt}</div>
     </div>
@@ -1139,15 +1076,13 @@ function renderTutorLoggerAssistant() {
     <div class="table-row justify-between">
       <div>
         <div class="row-primary-text" style="font-size: 0.85rem;">${p.piece}</div>
-        <div class="row-sub-text">${p.domain}</div>
       </div>
-      <button class="btn btn-xs btn-primary" onclick="prefillLoggerForm('${p.piece}', '${p.domain}')">Link & Fill</button>
+      <button class="btn btn-xs btn-primary" onclick="prefillLoggerForm('${p.piece}')">Link & Fill</button>
     </div>
   `).join('');
 }
 
-function prefillLoggerForm(repertoire, domain) {
-  dom.logDomain.value = domain;
+function prefillLoggerForm(repertoire) {
   
   // Find option matching repertoire title
   let found = false;
@@ -1196,9 +1131,7 @@ function renderTutorLogsArchive() {
             <button class="btn btn-xs btn-outline text-red" onclick="deleteSessionLog('${log.id}')">Delete</button>
           </div>
         </div>
-        <div class="item-card-meta">
-          Domain: <strong>${log.domain}</strong>
-        </div>
+
         <p class="item-card-body small">${log.observations}</p>
         <div class="flex-row gap-14" style="background-color: rgba(0,0,0,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
           <div class="xs">Ensemble Cohesion Rating: <strong class="text-yellow">${log.coordination}/5</strong></div>
@@ -1228,14 +1161,12 @@ function handleTuttiNotesSubmit(e) {
   rows.forEach(row => {
     const g = row.querySelector('.row-group').value;
     const s = row.querySelector('.row-section').value;
-    const d = row.querySelector('.row-domain').value;
     const c = row.querySelector('.row-content').value.trim();
     if (c) {
       observations.push({
         id: 'obs-' + Date.now() + Math.random().toString(36).substr(2, 5),
         group: g,
         section: s,
-        domain: d,
         content: c,
         status: 'Requires attention'
       });
@@ -1281,7 +1212,6 @@ function handleLessonPlanSubmit(e) {
     section: u.section,
     piece: pieceTitle,
     location: dom.planLocation.value.trim(),
-    domain: dom.planDomain.value,
     strategy: dom.planStrategy.value.trim(),
     createdAt: new Date().toISOString().split('T')[0]
   };
@@ -1317,7 +1247,6 @@ function handleSessionLogSubmit(e) {
     group: u.group,
     section: u.section,
     piece: pieceTitle,
-    domain: dom.logDomain.value,
     coordination: parseInt(dom.logCoordination.value),
     status: dom.logLevel.value,
     observations: dom.logObservations.value.trim(),
@@ -1334,7 +1263,7 @@ function handleSessionLogSubmit(e) {
   rehearsals.forEach(reh => {
     if (reh.repertoire === pieceTitle) {
       reh.observations.forEach(obs => {
-        if (obs.group === u.group && obs.section === u.section && obs.domain === dom.logDomain.value) {
+        if (obs.group === u.group && obs.section === u.section) {
           if (dom.logLevel.value === 'Demonstrated') {
             obs.status = 'Resolved';
           } else {
@@ -1590,9 +1519,6 @@ function renderStudentHub() {
             </div>
             <span class="badge ${statusClass}">${obs.status}</span>
           </div>
-          <div class="item-card-meta">
-            Domain: <strong>${obs.domain}</strong>
-          </div>
           <p class="small" style="margin-top: 6px;"><strong>Conductor Observation:</strong><br> ${obs.content}</p>
         </div>
       `;
@@ -1611,7 +1537,7 @@ function renderStudentHub() {
           <button class="btn btn-xs btn-primary" onclick="prefillStudentReflector('${log.id}')">Reflect on this Rehearsal</button>
         </div>
         <div class="item-card-meta">
-          Domain: <strong>${log.domain}</strong> · Status: <span class="badge ${log.status === 'Requires further development' ? 'badge-red' : log.status === 'Demonstrated' ? 'badge-green' : 'badge-yellow'}">${log.status}</span>
+          Status: <span class="badge ${log.status === 'Requires further development' ? 'badge-red' : log.status === 'Demonstrated' ? 'badge-green' : 'badge-yellow'}">${log.status}</span>
         </div>
         <p class="item-card-body small">${log.observations}</p>
         <div class="xs muted">Logged on: ${log.createdAt}</div>
@@ -1818,10 +1744,10 @@ function renderTutorCheckinReminders() {
 
   const logs = DB.get('session_logs').filter(l => l.group === u.group && l.section === u.section);
   
-  // Group by piece + domain and find the latest log for each combination
+  // Group by piece and find the latest log for each piece
   const latestLogsMap = {};
   logs.forEach(log => {
-    const key = `${log.piece} | ${log.domain}`;
+    const key = log.piece;
     if (!latestLogsMap[key] || new Date(log.createdAt) > new Date(latestLogsMap[key].createdAt)) {
       latestLogsMap[key] = log;
     }
@@ -1839,16 +1765,16 @@ function renderTutorCheckinReminders() {
     <div class="table-row justify-between animate-fade-in" style="margin-top: 8px;">
       <div>
         <div class="row-primary-text" style="font-weight: 600;">${log.piece}</div>
-        <div class="row-sub-text">${log.domain} · Last status: <strong class="text-${log.status === 'Requires further development' ? 'red' : 'yellow'}">${log.status}</strong></div>
+        <div class="row-sub-text">Last status: <strong class="text-${log.status === 'Requires further development' ? 'red' : 'yellow'}">${log.status}</strong></div>
         <div class="xs muted">Last log: ${log.createdAt}</div>
       </div>
-      <button class="btn btn-xs btn-primary" onclick="prefillCheckinForm('${log.piece.replace(/'/g, "\\'")}', '${log.domain.replace(/'/g, "\\'")}')">Check-in & Log</button>
+      <button class="btn btn-xs btn-primary" onclick="prefillCheckinForm('${log.piece.replace(/'/g, "\\'")}')">Check-in & Log</button>
     </div>
   `).join('');
 }
 
 // Prefill form for check-in and switch to logger
-window.prefillCheckinForm = function(repertoire, domain) {
+window.prefillCheckinForm = function(repertoire) {
   const u = state.activeUser;
   if (!u) return;
 
@@ -1861,7 +1787,7 @@ window.prefillCheckinForm = function(repertoire, domain) {
   switchPanel('tutor-logger');
 
   // Use prefillLoggerForm helper
-  prefillLoggerForm(repertoire, domain);
+  prefillLoggerForm(repertoire);
 };
 
 window.prefillPlannerFromObservation = function(obsId) {
@@ -1889,9 +1815,6 @@ window.prefillPlannerFromObservation = function(obsId) {
   const btnPlanner = dom.sidebarNav.querySelector('[data-panel="tutor-planner"]');
   if (btnPlanner) btnPlanner.classList.add('active');
   switchPanel('tutor-planner');
-
-  // Fill in the Planner form fields
-  dom.planDomain.value = matchedObs.domain;
   
   // Prefill repertoire select
   let found = false;
