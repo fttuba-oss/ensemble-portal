@@ -384,14 +384,22 @@
 
         <!-- 3. Tutor Session Logger Panel -->
         <section id="tutor-logger" class="panel">
-          <div class="grid-layout grid-1-2">
+          <div class="flex-column gap-16" style="max-width: 850px; margin: 0 auto;">
             <!-- Form to log session -->
-            <div class="dashboard-card bg-glass">
+            <div class="dashboard-card bg-glass animate-fade-in">
               <div class="card-header">
                 <h2>Sectional Log</h2>
               </div>
               <p class="muted small mb-12">Detail the result of your recent sectional rehearsal. This log is sent to the coordinators.</p>
+              
               <form id="sessionLogForm" class="flex-column gap-14">
+                <div class="form-field">
+                  <label for="logPlanSelect">Link to Section Lesson Plan (Optional)</label>
+                  <select id="logPlanSelect" class="input-control">
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+
                 <div class="form-field">
                   <label for="logRepertoireSelect">Repertoire Rehearsed</label>
                   <select id="logRepertoireSelect" class="input-control" required></select>
@@ -415,32 +423,8 @@
                   <!-- Dynamic part logging rows will be inserted here -->
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="margin-top: 12px;">Submit Session Log</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 12px;">Submit Sectional Log</button>
               </form>
-            </div>
-
-            <!-- Pre-fill from active plan assistant -->
-            <div class="flex-column gap-16">
-              <div class="dashboard-card bg-glass">
-                <div class="card-header">
-                  <h2>Link to Section Lesson Plan</h2>
-                </div>
-                <p class="muted small mb-12">Select an existing rehearsal plan to pre-fill the form above with the repertoire and target focus.</p>
-                <div class="flex-column gap-10" id="tutorLoggerPlanSelector">
-                  <!-- Populated dynamically with action buttons to "Fill Repertoire & Domain" -->
-                </div>
-              </div>
-
-              <div class="dashboard-card bg-glass">
-                <div class="card-header">
-                  <h2>Logging Guide</h2>
-                </div>
-                <ul class="bullet-list small muted">
-                  <li>Ensure your logs address priorities set by the coordinators.</li>
-                  <li>Mention exact dynamic levels, pitch corrections, or tempo variations used.</li>
-                  <li>Your logs are directly aggregated into the coordinator dashboard so they can adjust the next tutti schedule.</li>
-                </ul>
-              </div>
             </div>
           </div>
         </section>

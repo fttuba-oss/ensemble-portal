@@ -273,7 +273,7 @@ const dom = {
   logGeneralFeedback: document.getElementById('logGeneralFeedback'),
   logPartsContainer: document.getElementById('logPartsContainer'),
   addLogPartBtn: document.getElementById('addLogPartBtn'),
-  tutorLoggerPlanSelector: document.getElementById('tutorLoggerPlanSelector'),
+  logPlanSelect: document.getElementById('logPlanSelect'),
   
   // Tutor Logs Archive Elements
   tutorLogsList: document.getElementById('tutorLogsList'),
@@ -375,6 +375,7 @@ function setupEventListeners() {
   dom.lessonPlanForm.addEventListener('submit', handleLessonPlanSubmit);
   dom.addPlanPartBtn.addEventListener('click', () => createPlanPartRow());
   dom.sessionLogForm.addEventListener('submit', handleSessionLogSubmit);
+  dom.logPlanSelect.addEventListener('change', handleLogPlanSelectChange);
   dom.addLogPartBtn.addEventListener('click', () => createLogPartRow());
   dom.studentReflectionForm.addEventListener('submit', handleStudentReflectionSubmit);
 
@@ -1124,19 +1125,58 @@ function renderTutorLoggerAssistant() {
   const u = state.activeUser;
   const plans = DB.get('lesson_plans').filter(p => p.group === u.group && p.section === u.section);
   
-  if (plans.length === 0) {
-    dom.tutorLoggerPlanSelector.innerHTML = `<p class="muted small">Create a Lesson Plan first to link it into your logs here.</p>`;
+  // Sort plans by date descending
+  plans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  
+  dom.logPlanSelect.innerHTML = `
+    <option value="">-- No Plan / Custom Log --</option>
+    ${plans.map(p => `<option value="${p.id}">${p.piece} (Plan from ${p.createdAt})</option>`).join('')}
+  `;
+}
+
+// Handle change on integrated lesson plan selector dropdown
+function handleLogPlanSelectChange(e) {
+  const planId = e.target.value;
+  if (!planId) {
+    // Clear and add a default row
+    dom.logRepertoireSelect.value = '';
+    dom.logRepertoireCustom.value = '';
+    dom.logRepertoireCustom.style.display = 'none';
+    dom.logRepertoireCustom.required = false;
+    dom.logPartsContainer.innerHTML = '';
+    createLogPartRow();
     return;
   }
   
-  dom.tutorLoggerPlanSelector.innerHTML = plans.map(p => `
-    <div class="table-row justify-between">
-      <div>
-        <div class="row-primary-text" style="font-size: 0.85rem;">${p.piece}</div>
-      </div>
-      <button class="btn btn-xs btn-primary" onclick="prefillLoggerForm('${p.piece}')">Link & Fill</button>
-    </div>
-  `).join('');
+  const plans = DB.get('lesson_plans');
+  const plan = plans.find(p => p.id === planId);
+  if (plan) {
+    // Fill Repertoire
+    let found = false;
+    for (let i = 0; i < dom.logRepertoireSelect.options.length; i++) {
+      if (dom.logRepertoireSelect.options[i].value === plan.piece) {
+        dom.logRepertoireSelect.value = plan.piece;
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      dom.logRepertoireSelect.value = '__custom__';
+      dom.logRepertoireCustom.style.display = 'block';
+      dom.logRepertoireCustom.required = true;
+      dom.logRepertoireCustom.value = plan.piece;
+    } else {
+      dom.logRepertoireCustom.style.display = 'none';
+      dom.logRepertoireCustom.required = false;
+    }
+    
+    // Clear and populate sections from the lesson plan
+    dom.logPartsContainer.innerHTML = '';
+    plan.parts.forEach(part => {
+      createLogPartRow(part.location, 'Progressing', '');
+    });
+  }
 }
 
 function prefillLoggerForm(repertoire) {
@@ -1167,10 +1207,16 @@ function prefillLoggerForm(repertoire) {
     if (plans.length > 0) {
       plans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       const latestPlan = plans[0];
+      
+      // Select the plan in our integrated selector dropdown
+      dom.logPlanSelect.value = latestPlan.id;
+      
       dom.logPartsContainer.innerHTML = '';
       latestPlan.parts.forEach(part => {
         createLogPartRow(part.location, 'Progressing', '');
       });
+    } else {
+      dom.logPlanSelect.value = '';
     }
   }
   
@@ -1389,6 +1435,7 @@ function handleSessionLogSubmit(e) {
   }
   
   // Clear Form
+  dom.logPlanSelect.value = '';
   dom.logRepertoireSelect.value = '';
   dom.logRepertoireCustom.value = '';
   dom.logRepertoireCustom.style.display = 'none';
