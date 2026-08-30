@@ -948,7 +948,7 @@ function renderGlobalLogsExplorer() {
           ${log.generalFeedback}
         </p>
         <div class="flex-column gap-6" style="margin-top: 10px;">
-          <strong>Part Attainments:</strong>
+          <strong>Section Attainments:</strong>
           ${log.parts.map(part => {
             let badgeClass = 'badge-yellow';
             if (part.status === 'Requires further development') badgeClass = 'badge-red';
@@ -1060,7 +1060,7 @@ function createPlanPartRow(location = '', goal = '') {
   row.style.cssText = 'margin-top: 6px;';
   
   row.innerHTML = `
-    <input type="text" class="row-part-location input-control" style="flex: 2; font-size: 0.85rem; height: 32px;" placeholder="e.g. Mvt I, bars 24-32" value="${location}" required />
+    <input type="text" class="row-part-location input-control" style="flex: 2; font-size: 0.85rem; height: 32px;" placeholder="e.g. Section A (bars 24-32)" value="${location}" required />
     <input type="text" class="row-part-goal input-control" style="flex: 3; font-size: 0.85rem; height: 32px;" placeholder="e.g. Lock unison pitch stability" value="${goal}" required />
     <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.plan-part-row').remove()" style="height: 32px; flex: 0.5;">Delete</button>
   `;
@@ -1077,7 +1077,7 @@ function createLogPartRow(location = '', status = 'Progressing', notes = '') {
   
   row.innerHTML = `
     <div class="flex-row gap-10 items-center">
-      <input type="text" class="row-log-location input-control" style="flex: 3; font-size: 0.85rem; height: 32px;" placeholder="Location (e.g. Mvt I · bars 24-32)" value="${location}" required />
+      <input type="text" class="row-log-location input-control" style="flex: 3; font-size: 0.85rem; height: 32px;" placeholder="Section (e.g. Section A / bars 24-32)" value="${location}" required />
       <select class="row-log-status input-control" style="flex: 2; font-size: 0.85rem; height: 32px;" required>
         <option value="Requires further development" ${status === 'Requires further development' ? 'selected' : ''}>Requires further development</option>
         <option value="Progressing" ${status === 'Progressing' ? 'selected' : ''}>Progressing</option>
@@ -1085,7 +1085,7 @@ function createLogPartRow(location = '', status = 'Progressing', notes = '') {
       </select>
       <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.log-part-row').remove()" style="height: 32px;">Delete</button>
     </div>
-    <input type="text" class="row-log-notes input-control" style="font-size: 0.85rem; height: 32px;" placeholder="Outcome notes for this part..." value="${notes}" required />
+    <input type="text" class="row-log-notes input-control" style="font-size: 0.85rem; height: 32px;" placeholder="Outcome notes for this section..." value="${notes}" required />
   `;
   dom.logPartsContainer.appendChild(row);
 }
@@ -1107,7 +1107,7 @@ function renderTutorPlansList() {
         <button class="btn btn-xs btn-outline text-red" onclick="deleteLessonPlan('${plan.id}')">Delete</button>
       </div>
       <div class="flex-column gap-6" style="margin-top: 8px;">
-        <strong>Target Parts:</strong>
+        <strong>Target Sections:</strong>
         ${plan.parts.map(part => `
           <div style="font-size: 0.8rem; border-left: 2px solid var(--accent); padding-left: 6px; margin-top: 4px;">
             <strong>${part.location}:</strong> <span class="muted">${part.goal}</span>
@@ -1199,7 +1199,7 @@ function renderTutorLogsArchive() {
           ${log.generalFeedback}
         </p>
         <div class="flex-column gap-6" style="margin-top: 10px;">
-          <strong>Part-by-Part Outcomes:</strong>
+          <strong>Section-by-Section Outcomes:</strong>
           ${log.parts.map(part => {
             let badgeClass = 'badge-yellow';
             if (part.status === 'Requires further development') badgeClass = 'badge-red';
@@ -1653,7 +1653,7 @@ function renderStudentHub() {
           ${log.generalFeedback}
         </p>
         <div class="flex-column gap-6" style="margin-top: 10px;">
-          <strong>Rehearsed Locations:</strong>
+          <strong>Rehearsed Sections:</strong>
           ${log.parts.map(part => {
             let badgeClass = 'badge-yellow';
             if (part.status === 'Requires further development') badgeClass = 'badge-red';
