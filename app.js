@@ -97,7 +97,6 @@ const SEED_SESSION_LOGS = [
     parts: [
       { location: 'Mvt II · 113–128', status: 'Requires further development', notes: 'Top register is still sharp. Focus on embouchure relaxation.' }
     ],
-    coordination: 3,
     createdAt: '2026-08-20'
   },
   {
@@ -109,7 +108,6 @@ const SEED_SESSION_LOGS = [
     parts: [
       { location: 'Mvt I · 57-72', status: 'Progressing', notes: 'Not yet fully stable at performance tempo, but ready for tutti integration.' }
     ],
-    coordination: 4,
     createdAt: '2026-08-20'
   },
   {
@@ -121,7 +119,6 @@ const SEED_SESSION_LOGS = [
     parts: [
       { location: '142–150', status: 'Demonstrated', notes: 'Tempo is highly stable.' }
     ],
-    coordination: 5,
     createdAt: '2026-08-19'
   }
 ];
@@ -273,8 +270,6 @@ const dom = {
   sessionLogForm: document.getElementById('sessionLogForm'),
   logRepertoireSelect: document.getElementById('logRepertoireSelect'),
   logRepertoireCustom: document.getElementById('logRepertoireCustom'),
-  logCoordination: document.getElementById('logCoordination'),
-  logLevel: document.getElementById('logLevel'),
   logGeneralFeedback: document.getElementById('logGeneralFeedback'),
   logPartsContainer: document.getElementById('logPartsContainer'),
   addLogPartBtn: document.getElementById('addLogPartBtn'),
@@ -490,7 +485,7 @@ function syncIdentity() {
       </a>
       <a class="nav-item" data-panel="tutor-logger">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        Log Session Outcome
+        Sectional Log
       </a>
       <a class="nav-item" data-panel="tutor-logs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -969,9 +964,7 @@ function renderGlobalLogsExplorer() {
             `;
           }).join('')}
         </div>
-        <div class="flex-row gap-16" style="margin-top: 10px; background-color: rgba(255,255,255,0.01); padding: 8px; border-radius: var(--radius-sm); border: 1px dashed var(--border-subtle);">
-          <div><span class="xs muted">Ensemble Cohesion Score:</span> <strong class="text-yellow">${log.coordination}/5</strong></div>
-        </div>
+
       </article>
     `;
   }).join('');
@@ -1222,9 +1215,7 @@ function renderTutorLogsArchive() {
             `;
           }).join('')}
         </div>
-        <div class="flex-row gap-14" style="background-color: rgba(0,0,0,0.01); padding: 6px 8px; border-radius: var(--radius-sm); border: 1px dashed var(--border-subtle); margin-top: 10px;">
-          <div class="xs">Ensemble Cohesion Rating: <strong class="text-yellow">${log.coordination}/5</strong></div>
-        </div>
+
         <div class="item-card-footer" style="margin-top: 8px;">
           <span>Submitted on: ${log.createdAt}</span>
           <span>Privacy Locked</span>
@@ -1368,7 +1359,6 @@ function handleSessionLogSubmit(e) {
     piece: pieceTitle,
     generalFeedback: dom.logGeneralFeedback.value.trim(),
     parts: parts,
-    coordination: parseInt(dom.logCoordination.value),
     createdAt: new Date().toISOString().split('T')[0]
   };
   
@@ -1680,7 +1670,6 @@ function renderStudentHub() {
           }).join('')}
         </div>
         <div class="item-card-footer" style="margin-top: 10px;">
-          <span>Ensemble Cohesion: ${log.coordination}/5</span>
           <span>Logged on: ${log.createdAt}</span>
         </div>
       </div>
