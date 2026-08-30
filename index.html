@@ -354,16 +354,19 @@
                   <select id="planRepertoireSelect" class="input-control" required></select>
                   <input type="text" id="planRepertoireCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
                 </div>
-                <div class="form-field">
-                  <label for="planLocation">Location (Bars / Movements)</label>
-                  <input type="text" id="planLocation" class="input-control" placeholder="e.g. Mvt I, bars 57-72" required />
+                <div class="divider" style="margin: 10px 0; border-top: 1px dashed var(--border-subtle);"></div>
+                
+                <div class="flex-row justify-between items-center">
+                  <h3 style="font-size: 1rem; font-weight: 600;">Rehearsal Parts & Locations</h3>
+                  <button type="button" id="addPlanPartBtn" class="btn btn-xs btn-outline">+ Add Location/Part</button>
+                </div>
+                <p class="muted small">Specify locations/places and what you intend to achieve in each part during the sectional.</p>
+
+                <div id="planPartsContainer" class="flex-column gap-12" style="margin-top: 8px;">
+                  <!-- Dynamic plan part rows will be inserted here -->
                 </div>
 
-                <div class="form-field">
-                  <label for="planStrategy">Sectional Plan</label>
-                  <textarea id="planStrategy" class="textarea-control" placeholder="e.g. Slow metronome matching, breathing support drills, staggered entries..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Save Rehearsal Plan</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 12px;">Save Rehearsal Plan</button>
               </form>
             </div>
 
@@ -407,20 +410,24 @@
                   </select>
                 </div>
 
-                <div class="form-field">
-                  <label for="logLevel">Attainment Level Status</label>
-                  <select id="logLevel" class="input-control" required>
-                    <option value="Requires further development">Requires further development</option>
-                    <option value="Progressing">Progressing</option>
-                    <option value="Demonstrated">Demonstrated</option>
-                  </select>
+                 <div class="form-field">
+                  <label for="logGeneralFeedback">General Sectional Feedback & Observations</label>
+                  <textarea id="logGeneralFeedback" class="textarea-control" placeholder="Describe general highlights, overall dynamics, focus or behavioral points during this sectional..." required></textarea>
                 </div>
 
-                <div class="form-field">
-                  <label for="logObservations">Observations & Rehearsal Evidence</label>
-                  <textarea id="logObservations" class="textarea-control" placeholder="Detail notes, e.g., 'Metronome tempo 104 reached. Intonation stable in lower register but flutes sharp at top...' " required></textarea>
+                <div class="divider" style="margin: 10px 0; border-top: 1px dashed var(--border-subtle);"></div>
+
+                <div class="flex-row justify-between items-center">
+                  <h3 style="font-size: 1rem; font-weight: 600;">Part-by-Part Attainment</h3>
+                  <button type="button" id="addLogPartBtn" class="btn btn-xs btn-outline">+ Add Location/Part</button>
                 </div>
-                <button type="submit" class="btn btn-primary">Submit Session Log</button>
+                <p class="muted small">Record attainment status and notes for each rehearsed location.</p>
+
+                <div id="logPartsContainer" class="flex-column gap-12" style="margin-top: 8px;">
+                  <!-- Dynamic part logging rows will be inserted here -->
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 12px;">Submit Session Log</button>
               </form>
             </div>
 

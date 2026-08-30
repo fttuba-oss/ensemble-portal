@@ -70,8 +70,9 @@ const SEED_LESSON_PLANS = [
     group: 'NUSSO',
     section: 'Horn',
     piece: 'New Work',
-    location: 'Mvt II · 113–128',
-    strategy: 'Will practice playing these chords slow and out of context, checking pitch accuracy with drone cues. Work on physical posture and breath flow.',
+    parts: [
+      { location: 'Mvt II · 113–128', goal: 'Practice playing these chords slow and check pitch accuracy with drone cues. Work on physical posture.' }
+    ],
     createdAt: '2026-08-19'
   },
   {
@@ -79,8 +80,9 @@ const SEED_LESSON_PLANS = [
     group: 'NUSSO',
     section: 'Trumpet',
     piece: 'First Suite',
-    location: 'Mvt I · 57-72',
-    strategy: 'Start sectional with slow metronome (tempo 80) matching length of notes. Slowly ramp up by 4bpm increments to target speed.',
+    parts: [
+      { location: 'Mvt I · 57-72', goal: 'Start sectional with slow metronome matching length of notes, slow ramp up to target speed.' }
+    ],
     createdAt: '2026-08-20'
   }
 ];
@@ -90,30 +92,36 @@ const SEED_SESSION_LOGS = [
     id: 'log-1',
     group: 'NUSSO',
     section: 'Horn',
-    piece: 'New Work (bars 113–128)',
+    piece: 'New Work',
+    generalFeedback: 'Worked on unison notes. Pitch stability remains inconsistent after two sectional sessions. Horns are tending sharp on the top register.',
+    parts: [
+      { location: 'Mvt II · 113–128', status: 'Requires further development', notes: 'Top register is still sharp. Focus on embouchure relaxation.' }
+    ],
     coordination: 3,
-    status: 'Requires further development',
-    observations: 'Worked on unison notes. Pitch stability remains inconsistent after two sectional sessions. Horns are tending sharp on the top register. Need to focus on embouchure relaxation.',
     createdAt: '2026-08-20'
   },
   {
     id: 'log-2',
     group: 'NUSSO',
     section: 'Trumpet',
-    piece: 'First Suite (Mvt I · 57–72)',
+    piece: 'First Suite',
+    generalFeedback: 'Improved consistency in repeated quavers. Worked with slow metronome and matched note length.',
+    parts: [
+      { location: 'Mvt I · 57-72', status: 'Progressing', notes: 'Not yet fully stable at performance tempo, but ready for tutti integration.' }
+    ],
     coordination: 4,
-    status: 'Progressing',
-    observations: 'Improved consistency in repeated quavers. Worked with slow metronome and matched note length. Not yet fully stable at performance tempo, but ready for tutti integration.',
     createdAt: '2026-08-20'
   },
   {
     id: 'log-3',
     group: 'NUSWS',
     section: 'Clarinet',
-    piece: 'First Suite (142–150)',
+    piece: 'First Suite',
+    generalFeedback: 'Woodwinds aligned to percussion downbeats. Syncopation rhythm demonstrated perfectly.',
+    parts: [
+      { location: '142–150', status: 'Demonstrated', notes: 'Tempo is highly stable.' }
+    ],
     coordination: 5,
-    status: 'Demonstrated',
-    observations: 'Syncopation rhythm demonstrated perfectly. Tutors and students aligned to percussion downbeats. Tempo is highly stable.',
     createdAt: '2026-08-19'
   }
 ];
@@ -257,8 +265,8 @@ const dom = {
   lessonPlanForm: document.getElementById('lessonPlanForm'),
   planRepertoireSelect: document.getElementById('planRepertoireSelect'),
   planRepertoireCustom: document.getElementById('planRepertoireCustom'),
-  planLocation: document.getElementById('planLocation'),
-  planStrategy: document.getElementById('planStrategy'),
+  planPartsContainer: document.getElementById('planPartsContainer'),
+  addPlanPartBtn: document.getElementById('addPlanPartBtn'),
   tutorPlansList: document.getElementById('tutorPlansList'),
   
   // Tutor Session Logger Elements
@@ -267,7 +275,9 @@ const dom = {
   logRepertoireCustom: document.getElementById('logRepertoireCustom'),
   logCoordination: document.getElementById('logCoordination'),
   logLevel: document.getElementById('logLevel'),
-  logObservations: document.getElementById('logObservations'),
+  logGeneralFeedback: document.getElementById('logGeneralFeedback'),
+  logPartsContainer: document.getElementById('logPartsContainer'),
+  addLogPartBtn: document.getElementById('addLogPartBtn'),
   tutorLoggerPlanSelector: document.getElementById('tutorLoggerPlanSelector'),
   
   // Tutor Logs Archive Elements
@@ -368,7 +378,9 @@ function setupEventListeners() {
   dom.addObservationRowBtn.addEventListener('click', () => createObservationRow());
 
   dom.lessonPlanForm.addEventListener('submit', handleLessonPlanSubmit);
+  dom.addPlanPartBtn.addEventListener('click', () => createPlanPartRow());
   dom.sessionLogForm.addEventListener('submit', handleSessionLogSubmit);
+  dom.addLogPartBtn.addEventListener('click', () => createLogPartRow());
   dom.studentReflectionForm.addEventListener('submit', handleStudentReflectionSubmit);
 
   // Filter Event Handlers
@@ -493,6 +505,12 @@ function syncIdentity() {
     // Populate Repertoire dropdowns for the tutor
     populateRepertoireDropdown(u.group, dom.planRepertoireSelect, dom.planRepertoireCustom);
     populateRepertoireDropdown(u.group, dom.logRepertoireSelect, dom.logRepertoireCustom);
+
+    // Initialize dynamic containers with a clean starting row
+    dom.planPartsContainer.innerHTML = '';
+    createPlanPartRow();
+    dom.logPartsContainer.innerHTML = '';
+    createLogPartRow();
 
     switchPanel('tutor-hub');
   } else if (u.role === 'student') {
@@ -650,6 +668,15 @@ function renderCurrentViewportData() {
   }
 }
 
+// Helper to compute overall status of a sectional log based on its parts
+function getLogOverallStatus(log) {
+  if (!log.parts || log.parts.length === 0) return 'Progressing';
+  const statuses = log.parts.map(p => p.status);
+  if (statuses.every(s => s === 'Demonstrated')) return 'Demonstrated';
+  if (statuses.some(s => s === 'Requires further development')) return 'Requires further development';
+  return 'Progressing';
+}
+
 // == Coordinator Dashboard Overview ==
 function renderOverviewMetrics() {
   const logs = DB.get('session_logs');
@@ -670,7 +697,7 @@ function renderOverviewMetrics() {
     if (secLogs.length > 0) {
       // Sort to get the latest one
       secLogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      const latestStatus = secLogs[0].status;
+      const latestStatus = getLogOverallStatus(secLogs[0]);
       if (latestStatus === 'Requires further development') requires++;
       else if (latestStatus === 'Progressing') progressing++;
       else if (latestStatus === 'Demonstrated') demonstrated++;
@@ -746,18 +773,19 @@ function renderOverviewPriorities() {
   }
   
   dom.prioritiesTable.innerHTML = filtered.map(item => {
+    const overallStatus = getLogOverallStatus(item);
     let badgeClass = 'badge-yellow';
-    if (item.status === 'Requires further development') badgeClass = 'badge-red';
-    if (item.status === 'Demonstrated') badgeClass = 'badge-green';
+    if (overallStatus === 'Requires further development') badgeClass = 'badge-red';
+    if (overallStatus === 'Demonstrated') badgeClass = 'badge-green';
     
     return `
       <div class="table-row">
         <div>
           <div class="row-primary-text">${item.section} · ${item.piece}</div>
           <div class="row-sub-text">${item.createdAt}</div>
-          <div class="small muted" style="margin-top: 6px; font-style: italic;">"${item.observations}"</div>
+          <div class="small muted" style="margin-top: 6px; font-style: italic;">"${item.generalFeedback}"</div>
         </div>
-        <span class="badge ${badgeClass}">${item.status}</span>
+        <span class="badge ${badgeClass}">${overallStatus}</span>
       </div>
     `;
   }).join('');
@@ -908,31 +936,41 @@ function renderGlobalLogsExplorer() {
   }
   
   dom.explorerLogsList.innerHTML = filtered.map(log => {
-    let statusClass = 'badge-yellow';
-    if (log.status === 'Requires further development') statusClass = 'badge-red';
-    if (log.status === 'Demonstrated') statusClass = 'badge-green';
-    
     return `
-      <article class="item-card bg-glass">
+      <article class="item-card bg-glass animate-fade-in" style="margin-top: 10px;">
         <div class="item-card-header">
           <div>
             <span class="badge badge-accent" style="margin-right: 6px;">${log.group}</span>
-            <strong class="item-card-title">${log.section} Section Rehearsal Log</strong>
+            <strong class="item-card-title">${log.section} Sectional Log</strong>
           </div>
-          <span class="badge ${statusClass}">${log.status}</span>
+          <span class="xs muted">Date: ${log.createdAt}</span>
         </div>
         <div class="item-card-meta">
-          Repertoire focus: <strong>${log.piece}</strong>
+          Repertoire: <strong>${log.piece}</strong>
         </div>
-        <div class="item-card-body">
-          <p>${log.observations}</p>
-          <div class="flex-row gap-16" style="margin-top: 10px; background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            <div><span class="xs muted">Ensemble Cohesion Score:</span> <strong class="text-yellow">${log.coordination}/5</strong></div>
-          </div>
+        <p class="item-card-body small" style="background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
+          <strong>General Feedback:</strong><br>
+          ${log.generalFeedback}
+        </p>
+        <div class="flex-column gap-6" style="margin-top: 10px;">
+          <strong>Part Attainments:</strong>
+          ${log.parts.map(part => {
+            let badgeClass = 'badge-yellow';
+            if (part.status === 'Requires further development') badgeClass = 'badge-red';
+            if (part.status === 'Demonstrated') badgeClass = 'badge-green';
+            return `
+              <div class="table-row justify-between" style="padding: 6px 8px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem; margin-top: 4px;">
+                <div style="flex: 1; padding-right: 12px;">
+                  <strong class="text-cyan">${part.location}</strong><br>
+                  <span class="muted">${part.notes}</span>
+                </div>
+                <span class="badge ${badgeClass}" style="align-self: center;">${part.status}</span>
+              </div>
+            `;
+          }).join('')}
         </div>
-        <div class="item-card-footer">
-          <span>Tutor Log Submission</span>
-          <span>Date: ${log.createdAt}</span>
+        <div class="flex-row gap-16" style="margin-top: 10px; background-color: rgba(255,255,255,0.01); padding: 8px; border-radius: var(--radius-sm); border: 1px dashed var(--border-subtle);">
+          <div><span class="xs muted">Ensemble Cohesion Score:</span> <strong class="text-yellow">${log.coordination}/5</strong></div>
         </div>
       </article>
     `;
@@ -1020,6 +1058,45 @@ function renderTutorHub() {
   renderTutorCheckinReminders();
 }
 
+// Helper to add a dynamic plan part row
+function createPlanPartRow(location = '', goal = '') {
+  const rowId = 'plan-part-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.className = 'plan-part-row flex-row gap-10 items-center';
+  row.style.cssText = 'margin-top: 6px;';
+  
+  row.innerHTML = `
+    <input type="text" class="row-part-location input-control" style="flex: 2; font-size: 0.85rem; height: 32px;" placeholder="e.g. Mvt I, bars 24-32" value="${location}" required />
+    <input type="text" class="row-part-goal input-control" style="flex: 3; font-size: 0.85rem; height: 32px;" placeholder="e.g. Lock unison pitch stability" value="${goal}" required />
+    <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.plan-part-row').remove()" style="height: 32px; flex: 0.5;">Delete</button>
+  `;
+  dom.planPartsContainer.appendChild(row);
+}
+
+// Helper to add a dynamic log part row
+function createLogPartRow(location = '', status = 'Progressing', notes = '') {
+  const rowId = 'log-part-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.className = 'log-part-row flex-column gap-6';
+  row.style.cssText = 'border: 1px solid var(--border-subtle); padding: 8px; border-radius: var(--radius-sm); background-color: rgba(255,255,255,0.01); margin-top: 6px;';
+  
+  row.innerHTML = `
+    <div class="flex-row gap-10 items-center">
+      <input type="text" class="row-log-location input-control" style="flex: 3; font-size: 0.85rem; height: 32px;" placeholder="Location (e.g. Mvt I · bars 24-32)" value="${location}" required />
+      <select class="row-log-status input-control" style="flex: 2; font-size: 0.85rem; height: 32px;" required>
+        <option value="Requires further development" ${status === 'Requires further development' ? 'selected' : ''}>Requires further development</option>
+        <option value="Progressing" ${status === 'Progressing' ? 'selected' : ''}>Progressing</option>
+        <option value="Demonstrated" ${status === 'Demonstrated' ? 'selected' : ''}>Demonstrated</option>
+      </select>
+      <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.log-part-row').remove()" style="height: 32px;">Delete</button>
+    </div>
+    <input type="text" class="row-log-notes input-control" style="font-size: 0.85rem; height: 32px;" placeholder="Outcome notes for this part..." value="${notes}" required />
+  `;
+  dom.logPartsContainer.appendChild(row);
+}
+
 // == Tutor Lesson Planner ==
 function renderTutorPlansList() {
   const u = state.activeUser;
@@ -1033,12 +1110,18 @@ function renderTutorPlansList() {
   dom.tutorPlansList.innerHTML = plans.map(plan => `
     <div class="item-card bg-glass">
       <div class="item-card-header">
-        <strong class="item-card-title">${plan.piece} (${plan.location})</strong>
+        <strong class="item-card-title">${plan.piece}</strong>
         <button class="btn btn-xs btn-outline text-red" onclick="deleteLessonPlan('${plan.id}')">Delete</button>
       </div>
-
-      <p class="item-card-body small" style="background-color: rgba(0,0,0,0.03); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">${plan.strategy}</p>
-      <div class="xs muted">Plan established: ${plan.createdAt}</div>
+      <div class="flex-column gap-6" style="margin-top: 8px;">
+        <strong>Target Parts:</strong>
+        ${plan.parts.map(part => `
+          <div style="font-size: 0.8rem; border-left: 2px solid var(--accent); padding-left: 6px; margin-top: 4px;">
+            <strong>${part.location}:</strong> <span class="muted">${part.goal}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="xs muted" style="margin-top: 10px;">Plan established: ${plan.createdAt}</div>
     </div>
   `).join('');
 }
@@ -1064,7 +1147,6 @@ function renderTutorLoggerAssistant() {
 }
 
 function prefillLoggerForm(repertoire) {
-  
   // Find option matching repertoire title
   let found = false;
   for (let i = 0; i < dom.logRepertoireSelect.options.length; i++) {
@@ -1085,7 +1167,21 @@ function prefillLoggerForm(repertoire) {
     dom.logRepertoireCustom.required = false;
   }
   
-  dom.logObservations.focus();
+  // Prefill parts from the latest matching lesson plan
+  const u = state.activeUser;
+  if (u) {
+    const plans = DB.get('lesson_plans').filter(p => p.group === u.group && p.section === u.section && p.piece === repertoire);
+    if (plans.length > 0) {
+      plans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const latestPlan = plans[0];
+      dom.logPartsContainer.innerHTML = '';
+      latestPlan.parts.forEach(part => {
+        createLogPartRow(part.location, 'Progressing', '');
+      });
+    }
+  }
+  
+  dom.logGeneralFeedback.focus();
 }
 
 // == Tutor Logs History Archive ==
@@ -1099,25 +1195,37 @@ function renderTutorLogsArchive() {
   }
   
   dom.tutorLogsList.innerHTML = logs.map(log => {
-    let statusClass = 'badge-yellow';
-    if (log.status === 'Requires further development') statusClass = 'badge-red';
-    if (log.status === 'Demonstrated') statusClass = 'badge-green';
-    
     return `
-      <div class="item-card bg-glass">
+      <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px;">
         <div class="item-card-header">
           <strong class="item-card-title">${log.piece}</strong>
-          <div class="flex-row gap-10 items-center">
-            <span class="badge ${statusClass}">${log.status}</span>
-            <button class="btn btn-xs btn-outline text-red" onclick="deleteSessionLog('${log.id}')">Delete</button>
-          </div>
+          <button class="btn btn-xs btn-outline text-red" onclick="deleteSessionLog('${log.id}')">Delete</button>
         </div>
-
-        <p class="item-card-body small">${log.observations}</p>
-        <div class="flex-row gap-14" style="background-color: rgba(0,0,0,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
+        <p class="item-card-body small" style="background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
+          <strong>General Sectional Feedback:</strong><br>
+          ${log.generalFeedback}
+        </p>
+        <div class="flex-column gap-6" style="margin-top: 10px;">
+          <strong>Part-by-Part Outcomes:</strong>
+          ${log.parts.map(part => {
+            let badgeClass = 'badge-yellow';
+            if (part.status === 'Requires further development') badgeClass = 'badge-red';
+            if (part.status === 'Demonstrated') badgeClass = 'badge-green';
+            return `
+              <div class="table-row justify-between" style="padding: 6px 8px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem; margin-top: 4px;">
+                <div style="flex: 1; padding-right: 12px;">
+                  <strong class="text-cyan">${part.location}</strong><br>
+                  <span class="muted">${part.notes}</span>
+                </div>
+                <span class="badge ${badgeClass}" style="align-self: center;">${part.status}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="flex-row gap-14" style="background-color: rgba(0,0,0,0.01); padding: 6px 8px; border-radius: var(--radius-sm); border: 1px dashed var(--border-subtle); margin-top: 10px;">
           <div class="xs">Ensemble Cohesion Rating: <strong class="text-yellow">${log.coordination}/5</strong></div>
         </div>
-        <div class="item-card-footer">
+        <div class="item-card-footer" style="margin-top: 8px;">
           <span>Submitted on: ${log.createdAt}</span>
           <span>Privacy Locked</span>
         </div>
@@ -1187,13 +1295,27 @@ function handleLessonPlanSubmit(e) {
     return;
   }
 
+  const parts = [];
+  const rows = dom.planPartsContainer.querySelectorAll('.plan-part-row');
+  rows.forEach(row => {
+    const loc = row.querySelector('.row-part-location').value.trim();
+    const goal = row.querySelector('.row-part-goal').value.trim();
+    if (loc && goal) {
+      parts.push({ location: loc, goal: goal });
+    }
+  });
+
+  if (parts.length === 0) {
+    alert('Please specify at least one part/location for the lesson plan.');
+    return;
+  }
+
   const newItem = {
     id: 'plan-' + Date.now(),
     group: u.group,
     section: u.section,
     piece: pieceTitle,
-    location: dom.planLocation.value.trim(),
-    strategy: dom.planStrategy.value.trim(),
+    parts: parts,
     createdAt: new Date().toISOString().split('T')[0]
   };
   
@@ -1205,8 +1327,8 @@ function handleLessonPlanSubmit(e) {
   dom.planRepertoireSelect.value = '';
   dom.planRepertoireCustom.value = '';
   dom.planRepertoireCustom.style.display = 'none';
-  dom.planLocation.value = '';
-  dom.planStrategy.value = '';
+  dom.planPartsContainer.innerHTML = '';
+  createPlanPartRow();
   
   populateRepertoireDropdown(u.group, dom.planRepertoireSelect, dom.planRepertoireCustom);
   renderTutorPlansList();
@@ -1223,14 +1345,30 @@ function handleSessionLogSubmit(e) {
     return;
   }
 
+  const parts = [];
+  const rows = dom.logPartsContainer.querySelectorAll('.log-part-row');
+  rows.forEach(row => {
+    const loc = row.querySelector('.row-log-location').value.trim();
+    const status = row.querySelector('.row-log-status').value;
+    const notes = row.querySelector('.row-log-notes').value.trim();
+    if (loc) {
+      parts.push({ location: loc, status: status, notes: notes });
+    }
+  });
+
+  if (parts.length === 0) {
+    alert('Please specify at least one part/location for the sectional log.');
+    return;
+  }
+
   const newItem = {
     id: 'log-' + Date.now(),
     group: u.group,
     section: u.section,
     piece: pieceTitle,
+    generalFeedback: dom.logGeneralFeedback.value.trim(),
+    parts: parts,
     coordination: parseInt(dom.logCoordination.value),
-    status: dom.logLevel.value,
-    observations: dom.logObservations.value.trim(),
     createdAt: new Date().toISOString().split('T')[0]
   };
   
@@ -1241,15 +1379,16 @@ function handleSessionLogSubmit(e) {
   // Update matching conductor observations in DB
   const rehearsals = DB.get('tutti_rehearsals');
   let updated = false;
+  
+  // Resolve if any part was Demonstrated
+  const hasDemonstrated = parts.some(p => p.status === 'Demonstrated');
+  const targetStatus = hasDemonstrated ? 'Resolved' : 'In Progress';
+  
   rehearsals.forEach(reh => {
     if (reh.repertoire === pieceTitle) {
       reh.observations.forEach(obs => {
         if (obs.group === u.group && obs.section === u.section) {
-          if (dom.logLevel.value === 'Demonstrated') {
-            obs.status = 'Resolved';
-          } else {
-            obs.status = 'In Progress';
-          }
+          obs.status = targetStatus;
           updated = true;
         }
       });
@@ -1263,7 +1402,9 @@ function handleSessionLogSubmit(e) {
   dom.logRepertoireSelect.value = '';
   dom.logRepertoireCustom.value = '';
   dom.logRepertoireCustom.style.display = 'none';
-  dom.logObservations.value = '';
+  dom.logGeneralFeedback.value = '';
+  dom.logPartsContainer.innerHTML = '';
+  createLogPartRow();
   
   populateRepertoireDropdown(u.group, dom.logRepertoireSelect, dom.logRepertoireCustom);
   renderTutorLoggerAssistant();
@@ -1512,16 +1653,36 @@ function renderStudentHub() {
     dom.studentTutorLogsList.innerHTML = `<p class="muted small">No recent rehearsals logged by your section tutor.</p>`;
   } else {
     dom.studentTutorLogsList.innerHTML = logs.map(log => `
-      <div class="item-card bg-glass animate-fade-in">
+      <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px;">
         <div class="item-card-header">
           <strong class="item-card-title">${log.piece}</strong>
           <button class="btn btn-xs btn-primary" onclick="prefillStudentReflector('${log.id}')">Reflect on this Rehearsal</button>
         </div>
-        <div class="item-card-meta">
-          Status: <span class="badge ${log.status === 'Requires further development' ? 'badge-red' : log.status === 'Demonstrated' ? 'badge-green' : 'badge-yellow'}">${log.status}</span>
+        <p class="item-card-body small" style="background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
+          <strong>Tutor General Feedback:</strong><br>
+          ${log.generalFeedback}
+        </p>
+        <div class="flex-column gap-6" style="margin-top: 10px;">
+          <strong>Rehearsed Locations:</strong>
+          ${log.parts.map(part => {
+            let badgeClass = 'badge-yellow';
+            if (part.status === 'Requires further development') badgeClass = 'badge-red';
+            if (part.status === 'Demonstrated') badgeClass = 'badge-green';
+            return `
+              <div class="table-row justify-between" style="padding: 6px 8px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem; margin-top: 4px;">
+                <div style="flex: 1; padding-right: 12px;">
+                  <strong class="text-cyan">${part.location}</strong><br>
+                  <span class="muted">${part.notes}</span>
+                </div>
+                <span class="badge ${badgeClass}" style="align-self: center;">${part.status}</span>
+              </div>
+            `;
+          }).join('')}
         </div>
-        <p class="item-card-body small">${log.observations}</p>
-        <div class="xs muted">Logged on: ${log.createdAt}</div>
+        <div class="item-card-footer" style="margin-top: 10px;">
+          <span>Ensemble Cohesion: ${log.coordination}/5</span>
+          <span>Logged on: ${log.createdAt}</span>
+        </div>
       </div>
     `).join('');
   }
@@ -1735,7 +1896,7 @@ function renderTutorCheckinReminders() {
   });
 
   // Filter logs where the latest status is in-progress ('Progressing' or 'Requires further development')
-  const inProgressLogs = Object.values(latestLogsMap).filter(log => log.status !== 'Demonstrated');
+  const inProgressLogs = Object.values(latestLogsMap).filter(log => getLogOverallStatus(log) !== 'Demonstrated');
 
   if (inProgressLogs.length === 0) {
     dom.tutorCheckinReminders.innerHTML = `<p class="muted small">All caught up! No active check-in reminders for your section.</p>`;
@@ -1746,7 +1907,7 @@ function renderTutorCheckinReminders() {
     <div class="table-row justify-between animate-fade-in" style="margin-top: 8px;">
       <div>
         <div class="row-primary-text" style="font-weight: 600;">${log.piece}</div>
-        <div class="row-sub-text">Last status: <strong class="text-${log.status === 'Requires further development' ? 'red' : 'yellow'}">${log.status}</strong></div>
+        <div class="row-sub-text">Last status: <strong class="text-${getLogOverallStatus(log) === 'Requires further development' ? 'red' : 'yellow'}">${getLogOverallStatus(log)}</strong></div>
         <div class="xs muted">Last log: ${log.createdAt}</div>
       </div>
       <button class="btn btn-xs btn-primary" onclick="prefillCheckinForm('${log.piece.replace(/'/g, "\\'")}')">Check-in & Log</button>
