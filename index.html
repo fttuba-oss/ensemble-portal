@@ -402,7 +402,22 @@
                   <!-- Dynamic content -->
                 </div>
               </div>
-              
+
+              <!-- Rehearsal Check-in Reminders -->
+              <div class="dashboard-card bg-glass" style="margin-top: 16px;">
+                <div class="card-header">
+                  <div class="flex-row items-center gap-10">
+                    <span class="pulse-dot" style="background-color: var(--status-yellow); box-shadow: 0 0 6px var(--status-yellow);"></span>
+                    <h2>Rehearsal Check-in Reminders</h2>
+                  </div>
+                  <span class="badge badge-yellow">Action Required</span>
+                </div>
+                <p class="muted small">Repertoire items marked as in progress during recent sectionals that require verification.</p>
+                <div class="flex-column gap-12" id="tutorCheckinReminders" style="margin-top: 14px;">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
               <!-- Student Reflections Feed -->
               <div class="dashboard-card bg-glass" style="margin-top: 16px;">
                 <div class="card-header">
@@ -507,27 +522,15 @@
                   </select>
                 </div>
                 
-                <div class="grid-2 gap-10">
-                  <div class="form-field">
-                    <label for="logIntonation">Intonation Rating (1-5)</label>
-                    <select id="logIntonation" class="input-control" required>
-                      <option value="1">1 - Severe Issues</option>
-                      <option value="2">2 - Needs Work</option>
-                      <option value="3">3 - Acceptable</option>
-                      <option value="4">4 - Good Control</option>
-                      <option value="5">5 - Near Perfect</option>
-                    </select>
-                  </div>
-                  <div class="form-field">
-                    <label for="logCoordination">Ensemble Cohesion (1-5)</label>
-                    <select id="logCoordination" class="input-control" required>
-                      <option value="1">1 - Out of Sync</option>
-                      <option value="2">2 - Rough Transitions</option>
-                      <option value="3">3 - Solid Alignment</option>
-                      <option value="4">4 - Very Good</option>
-                      <option value="5">5 - Perfectly Unified</option>
-                    </select>
-                  </div>
+                <div class="form-field">
+                  <label for="logCoordination">Ensemble Cohesion (1-5)</label>
+                  <select id="logCoordination" class="input-control" required>
+                    <option value="1">1 - Out of Sync</option>
+                    <option value="2">2 - Rough Transitions</option>
+                    <option value="3">3 - Solid Alignment</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Perfectly Unified</option>
+                  </select>
                 </div>
 
                 <div class="form-field">

@@ -317,7 +317,6 @@ const dom = {
   logRepertoireSelect: document.getElementById('logRepertoireSelect'),
   logRepertoireCustom: document.getElementById('logRepertoireCustom'),
   logDomain: document.getElementById('logDomain'),
-  logIntonation: document.getElementById('logIntonation'),
   logCoordination: document.getElementById('logCoordination'),
   logLevel: document.getElementById('logLevel'),
   logObservations: document.getElementById('logObservations'),
@@ -328,6 +327,9 @@ const dom = {
 
   // Tutor student reflections
   tutorStudentReflectionsList: document.getElementById('tutorStudentReflectionsList'),
+
+  // Tutor check-in reminders
+  tutorCheckinReminders: document.getElementById('tutorCheckinReminders'),
 
   // Coordinator reflections
   coordReflectionsSearch: document.getElementById('coordReflectionsSearch'),
@@ -1006,8 +1008,7 @@ function renderGlobalLogsExplorer() {
         <div class="item-card-body">
           <p>${log.observations}</p>
           <div class="flex-row gap-16" style="margin-top: 10px; background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            <div><span class="xs muted">Intonation Score:</span> <strong class="text-cyan">${log.intonation}/5</strong></div>
-            <div><span class="xs muted">Cohesion Score:</span> <strong class="text-yellow">${log.coordination}/5</strong></div>
+            <div><span class="xs muted">Ensemble Cohesion Score:</span> <strong class="text-yellow">${log.coordination}/5</strong></div>
           </div>
         </div>
         <div class="item-card-footer">
@@ -1103,6 +1104,9 @@ function renderTutorHub() {
       </div>
     `).join('');
   }
+
+  // Render check-in reminders
+  renderTutorCheckinReminders();
 }
 
 // == Tutor Lesson Planner ==
@@ -1204,8 +1208,7 @@ function renderTutorLogsArchive() {
         </div>
         <p class="item-card-body small">${log.observations}</p>
         <div class="flex-row gap-14" style="background-color: rgba(0,0,0,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
-          <div class="xs">Intonation: <strong class="text-cyan">${log.intonation}/5</strong></div>
-          <div class="xs">Cohesion: <strong class="text-yellow">${log.coordination}/5</strong></div>
+          <div class="xs">Ensemble Cohesion Rating: <strong class="text-yellow">${log.coordination}/5</strong></div>
         </div>
         <div class="item-card-footer">
           <span>Submitted on: ${log.createdAt}</span>
@@ -1341,7 +1344,6 @@ function handleSessionLogSubmit(e) {
     section: u.section,
     piece: pieceTitle,
     domain: dom.logDomain.value,
-    intonation: parseInt(dom.logIntonation.value),
     coordination: parseInt(dom.logCoordination.value),
     status: dom.logLevel.value,
     observations: dom.logObservations.value.trim(),
@@ -1778,6 +1780,59 @@ window.deleteCoordinatorReflection = function(id) {
     DB.set('student_reflections', list);
     renderCoordinatorReflections();
   }
+};
+
+// == Tutor Check-in Reminders ==
+function renderTutorCheckinReminders() {
+  const u = state.activeUser;
+  if (!u) return;
+
+  const logs = DB.get('session_logs').filter(l => l.group === u.group && l.section === u.section);
+  
+  // Group by piece + domain and find the latest log for each combination
+  const latestLogsMap = {};
+  logs.forEach(log => {
+    const key = `${log.piece} | ${log.domain}`;
+    if (!latestLogsMap[key] || new Date(log.createdAt) > new Date(latestLogsMap[key].createdAt)) {
+      latestLogsMap[key] = log;
+    }
+  });
+
+  // Filter logs where the latest status is in-progress ('Progressing' or 'Requires further development')
+  const inProgressLogs = Object.values(latestLogsMap).filter(log => log.status !== 'Demonstrated');
+
+  if (inProgressLogs.length === 0) {
+    dom.tutorCheckinReminders.innerHTML = `<p class="muted small">All caught up! No active check-in reminders for your section.</p>`;
+    return;
+  }
+
+  dom.tutorCheckinReminders.innerHTML = inProgressLogs.map(log => `
+    <div class="table-row justify-between animate-fade-in" style="margin-top: 8px;">
+      <div>
+        <div class="row-primary-text" style="font-weight: 600;">${log.piece}</div>
+        <div class="row-sub-text">${log.domain} · Last status: <strong class="text-${log.status === 'Requires further development' ? 'red' : 'yellow'}">${log.status}</strong></div>
+        <div class="xs muted">Last log: ${log.createdAt}</div>
+      </div>
+      <button class="btn btn-xs btn-primary" onclick="prefillCheckinForm('${log.piece.replace(/'/g, "\\'")}', '${log.domain.replace(/'/g, "\\'")}')">Check-in & Log</button>
+    </div>
+  `).join('');
+}
+
+// Prefill form for check-in and switch to logger
+window.prefillCheckinForm = function(repertoire, domain) {
+  const u = state.activeUser;
+  if (!u) return;
+
+  // Set logger panel active in sidebar
+  const navItems = dom.sidebarNav.querySelectorAll('.nav-item');
+  navItems.forEach(b => b.classList.remove('active'));
+  const btnLogger = dom.sidebarNav.querySelector('[data-panel="tutor-logger"]');
+  if (btnLogger) btnLogger.classList.add('active');
+
+  switchPanel('tutor-logger');
+
+  // Use prefillLoggerForm helper
+  prefillLoggerForm(repertoire, domain);
 };
 
 // Kickstart on document load
