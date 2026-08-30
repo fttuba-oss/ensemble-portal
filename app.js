@@ -897,60 +897,96 @@ function renderCoordinatorNotes() {
 function handleExplorerFiltersChange() {
   const group = dom.explorerGroupFilter.value;
   populateSectionOptions(group === 'all' ? 'NUSSO' : group, dom.explorerSectionFilter);
-  renderGlobalLogsExplorer();
-}
-
 function renderGlobalLogsExplorer() {
-  const logs = DB.get('session_logs');
+  let logs = DB.get('session_logs');
+  let plans = DB.get('lesson_plans');
   const searchVal = dom.explorerSearch.value.toLowerCase();
   const groupFilter = dom.explorerGroupFilter.value;
   const sectionFilter = dom.explorerSectionFilter.value;
   
-  let filtered = logs;
-  
   if (groupFilter !== 'all') {
-    filtered = filtered.filter(l => l.group === groupFilter);
+    logs = logs.filter(l => l.group === groupFilter);
+    plans = plans.filter(p => p.group === groupFilter);
   }
   
   if (sectionFilter !== 'all') {
-    filtered = filtered.filter(l => l.section === sectionFilter);
+    logs = logs.filter(l => l.section === sectionFilter);
+    plans = plans.filter(p => p.section === sectionFilter);
   }
   
+  const planItems = plans.map(p => ({ ...p, type: 'plan' }));
+  const logItems = logs.map(l => ({ ...l, type: 'log' }));
+  let filtered = [...planItems, ...logItems];
+  
   if (searchVal) {
-    filtered = filtered.filter(l => 
-      l.piece.toLowerCase().includes(searchVal) || 
-      l.observations.toLowerCase().includes(searchVal) ||
-      l.section.toLowerCase().includes(searchVal)
-    );
+    filtered = filtered.filter(item => {
+      const pieceMatch = item.piece.toLowerCase().includes(searchVal);
+      const sectionMatch = item.section.toLowerCase().includes(searchVal);
+      if (item.type === 'plan') {
+        const goalMatch = item.parts.some(p => p.goal.toLowerCase().includes(searchVal) || p.location.toLowerCase().includes(searchVal));
+        return pieceMatch || sectionMatch || goalMatch;
+      } else {
+        const feedbackMatch = item.generalFeedback && item.generalFeedback.toLowerCase().includes(searchVal);
+        const notesMatch = item.parts.some(p => p.notes.toLowerCase().includes(searchVal) || p.location.toLowerCase().includes(searchVal));
+        return pieceMatch || sectionMatch || feedbackMatch || notesMatch;
+      }
+    });
   }
   
   filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   
   if (filtered.length === 0) {
-    dom.explorerLogsList.innerHTML = `<p class="muted small">No sectional rehearsal logs found matching filters.</p>`;
+    dom.explorerLogsList.innerHTML = `<p class="muted small">No sectional rehearsal logs or lesson plans found matching filters.</p>`;
     return;
   }
   
-  dom.explorerLogsList.innerHTML = filtered.map(log => {
+  dom.explorerLogsList.innerHTML = filtered.map(item => {
+    if (item.type === 'plan') {
+      return `
+        <article class="item-card bg-glass animate-fade-in" style="margin-top: 10px; border-left: 3px solid var(--status-yellow);">
+          <div class="item-card-header">
+            <div>
+              <span class="badge badge-accent" style="margin-right: 6px;">${item.group}</span>
+              <span class="badge badge-yellow" style="margin-right: 6px;">Lesson Plan</span>
+              <strong class="item-card-title">${item.section} Section</strong>
+            </div>
+            <span class="xs muted">Date: ${item.createdAt}</span>
+          </div>
+          <div class="item-card-meta">
+            Repertoire: <strong>${item.piece}</strong>
+          </div>
+          <div class="flex-column gap-6" style="margin-top: 10px;">
+            <strong>Target Sections:</strong>
+            ${item.parts.map(part => `
+              <div style="font-size: 0.8rem; border-left: 2px solid var(--accent); padding-left: 6px; margin-top: 4px;">
+                <strong>${part.location}:</strong> <span class="muted">${part.goal}</span>
+              </div>
+            `).join('')}
+          </div>
+        </article>
+      `;
+    }
+    
     return `
-      <article class="item-card bg-glass animate-fade-in" style="margin-top: 10px;">
+      <article class="item-card bg-glass animate-fade-in" style="margin-top: 10px; border-left: 3px solid var(--accent);">
         <div class="item-card-header">
           <div>
-            <span class="badge badge-accent" style="margin-right: 6px;">${log.group}</span>
-            <strong class="item-card-title">${log.section} Sectional Log</strong>
+            <span class="badge badge-accent" style="margin-right: 6px;">${item.group}</span>
+            <span class="badge badge-accent" style="margin-right: 6px;">Sectional Log</span>
+            <strong class="item-card-title">${item.section} Section</strong>
           </div>
-          <span class="xs muted">Date: ${log.createdAt}</span>
+          <span class="xs muted">Date: ${item.createdAt}</span>
         </div>
         <div class="item-card-meta">
-          Repertoire: <strong>${log.piece}</strong>
+          Repertoire: <strong>${item.piece}</strong>
         </div>
         <p class="item-card-body small" style="background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
           <strong>General Feedback:</strong><br>
-          ${log.generalFeedback}
+          ${item.generalFeedback}
         </p>
         <div class="flex-column gap-6" style="margin-top: 10px;">
           <strong>Section Attainments:</strong>
-          ${log.parts.map(part => {
+          ${item.parts.map(part => {
             let badgeClass = 'badge-yellow';
             if (part.status === 'Requires further development') badgeClass = 'badge-red';
             if (part.status === 'Demonstrated') badgeClass = 'badge-green';
@@ -965,7 +1001,6 @@ function renderGlobalLogsExplorer() {
             `;
           }).join('')}
         </div>
-
       </article>
     `;
   }).join('');
@@ -1223,30 +1258,62 @@ function prefillLoggerForm(repertoire) {
   dom.logGeneralFeedback.focus();
 }
 
-// == Tutor Logs History Archive ==
-function renderTutorLogsArchive() {
+// function renderTutorLogsArchive() {
   const u = state.activeUser;
+  const plans = DB.get('lesson_plans').filter(p => p.group === u.group && p.section === u.section);
   const logs = DB.get('session_logs').filter(l => l.group === u.group && l.section === u.section);
   
-  if (logs.length === 0) {
-    dom.tutorLogsList.innerHTML = `<p class="muted small">No submitted sectional logs found for your section.</p>`;
+  const planItems = plans.map(p => ({ ...p, type: 'plan' }));
+  const logItems = logs.map(l => ({ ...l, type: 'log' }));
+  const allItems = [...planItems, ...logItems].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  
+  if (allItems.length === 0) {
+    dom.tutorLogsList.innerHTML = `<p class="muted small">No submitted sectional logs or lesson plans found for your section.</p>`;
     return;
   }
   
-  dom.tutorLogsList.innerHTML = logs.map(log => {
+  dom.tutorLogsList.innerHTML = allItems.map(item => {
+    if (item.type === 'plan') {
+      return `
+        <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px; border-left: 3px solid var(--status-yellow);">
+          <div class="item-card-header">
+            <div>
+              <span class="badge badge-yellow" style="margin-right: 6px;">Lesson Plan</span>
+              <strong class="item-card-title">${item.piece}</strong>
+            </div>
+            <button class="btn btn-xs btn-outline text-red" onclick="deleteLessonPlan('${item.id}')">Delete</button>
+          </div>
+          <div class="flex-column gap-6" style="margin-top: 8px;">
+            <strong>Target Sections:</strong>
+            ${item.parts.map(part => `
+              <div style="font-size: 0.8rem; border-left: 2px solid var(--accent); padding-left: 6px; margin-top: 4px;">
+                <strong>${part.location}:</strong> <span class="muted">${part.goal}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="item-card-footer" style="margin-top: 10px;">
+            <span>Planned on: ${item.createdAt}</span>
+          </div>
+        </div>
+      `;
+    }
+    
     return `
-      <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px;">
+      <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px; border-left: 3px solid var(--accent);">
         <div class="item-card-header">
-          <strong class="item-card-title">${log.piece}</strong>
-          <button class="btn btn-xs btn-outline text-red" onclick="deleteSessionLog('${log.id}')">Delete</button>
+          <div>
+            <span class="badge badge-accent" style="margin-right: 6px;">Sectional Log</span>
+            <strong class="item-card-title">${item.piece}</strong>
+          </div>
+          <button class="btn btn-xs btn-outline text-red" onclick="deleteSessionLog('${item.id}')">Delete</button>
         </div>
         <p class="item-card-body small" style="background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
           <strong>General Sectional Feedback:</strong><br>
-          ${log.generalFeedback}
+          ${item.generalFeedback}
         </p>
         <div class="flex-column gap-6" style="margin-top: 10px;">
           <strong>Section-by-Section Outcomes:</strong>
-          ${log.parts.map(part => {
+          ${item.parts.map(part => {
             let badgeClass = 'badge-yellow';
             if (part.status === 'Requires further development') badgeClass = 'badge-red';
             if (part.status === 'Demonstrated') badgeClass = 'badge-green';
@@ -1261,9 +1328,8 @@ function renderTutorLogsArchive() {
             `;
           }).join('')}
         </div>
-
         <div class="item-card-footer" style="margin-top: 8px;">
-          <span>Submitted on: ${log.createdAt}</span>
+          <span>Submitted on: ${item.createdAt}</span>
           <span>Privacy Locked</span>
         </div>
       </div>
@@ -1480,6 +1546,7 @@ window.deleteLessonPlan = function(id) {
     DB.set('lesson_plans', list);
     renderTutorPlansList();
     renderTutorLoggerAssistant();
+    renderTutorLogsArchive();
   }
 };
 
@@ -1684,43 +1751,78 @@ function renderStudentHub() {
     }).join('');
   }
 
-  // 2. Render tutor session logs
-  const logs = DB.get('session_logs').filter(log => log.group === u.group && log.section === u.section);
-  if (logs.length === 0) {
-    dom.studentTutorLogsList.innerHTML = `<p class="muted small">No recent rehearsals logged by your section tutor.</p>`;
+  // 2. Render tutor session logs & plans
+  const plans = DB.get('lesson_plans').filter(p => p.group === u.group && p.section === u.section);
+  const logs = DB.get('session_logs').filter(l => l.group === u.group && l.section === u.section);
+  
+  const planItems = plans.map(p => ({ ...p, type: 'plan' }));
+  const logItems = logs.map(l => ({ ...l, type: 'log' }));
+  const allItems = [...planItems, ...logItems].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  
+  if (allItems.length === 0) {
+    dom.studentTutorLogsList.innerHTML = `<p class="muted small">No recent rehearsals planned or logged by your section tutor.</p>`;
   } else {
-    dom.studentTutorLogsList.innerHTML = logs.map(log => `
-      <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px;">
-        <div class="item-card-header">
-          <strong class="item-card-title">${log.piece}</strong>
-          <button class="btn btn-xs btn-primary" onclick="prefillStudentReflector('${log.id}')">Reflect on this Rehearsal</button>
-        </div>
-        <p class="item-card-body small" style="background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
-          <strong>Tutor General Feedback:</strong><br>
-          ${log.generalFeedback}
-        </p>
-        <div class="flex-column gap-6" style="margin-top: 10px;">
-          <strong>Rehearsed Sections:</strong>
-          ${log.parts.map(part => {
-            let badgeClass = 'badge-yellow';
-            if (part.status === 'Requires further development') badgeClass = 'badge-red';
-            if (part.status === 'Demonstrated') badgeClass = 'badge-green';
-            return `
-              <div class="table-row justify-between" style="padding: 6px 8px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem; margin-top: 4px;">
-                <div style="flex: 1; padding-right: 12px;">
-                  <strong class="text-cyan">${part.location}</strong><br>
-                  <span class="muted">${part.notes}</span>
-                </div>
-                <span class="badge ${badgeClass}" style="align-self: center;">${part.status}</span>
+    dom.studentTutorLogsList.innerHTML = allItems.map(item => {
+      if (item.type === 'plan') {
+        return `
+          <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px; border-left: 3px solid var(--status-yellow);">
+            <div class="item-card-header">
+              <div>
+                <span class="badge badge-yellow" style="margin-right: 6px;">Lesson Plan</span>
+                <strong class="item-card-title">${item.piece}</strong>
               </div>
-            `;
-          }).join('')}
+            </div>
+            <div class="flex-column gap-6" style="margin-top: 8px;">
+              <strong>Target Sections:</strong>
+              ${item.parts.map(part => `
+                <div style="font-size: 0.8rem; border-left: 2px solid var(--accent); padding-left: 6px; margin-top: 4px;">
+                  <strong>${part.location}:</strong> <span class="muted">${part.goal}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="item-card-footer" style="margin-top: 10px;">
+              <span>Planned on: ${item.createdAt}</span>
+            </div>
+          </div>
+        `;
+      }
+      
+      return `
+        <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px; border-left: 3px solid var(--accent);">
+          <div class="item-card-header">
+            <div>
+              <span class="badge badge-accent" style="margin-right: 6px;">Sectional Log</span>
+              <strong class="item-card-title">${item.piece}</strong>
+            </div>
+            <button class="btn btn-xs btn-primary" onclick="prefillStudentReflector('${item.id}')">Reflect on this Rehearsal</button>
+          </div>
+          <p class="item-card-body small" style="background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
+            <strong>Tutor General Feedback:</strong><br>
+            ${item.generalFeedback}
+          </p>
+          <div class="flex-column gap-6" style="margin-top: 10px;">
+            <strong>Rehearsed Sections:</strong>
+            ${item.parts.map(part => {
+              let badgeClass = 'badge-yellow';
+              if (part.status === 'Requires further development') badgeClass = 'badge-red';
+              if (part.status === 'Demonstrated') badgeClass = 'badge-green';
+              return `
+                <div class="table-row justify-between" style="padding: 6px 8px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem; margin-top: 4px;">
+                  <div style="flex: 1; padding-right: 12px;">
+                    <strong class="text-cyan">${part.location}</strong><br>
+                    <span class="muted">${part.notes}</span>
+                  </div>
+                  <span class="badge ${badgeClass}" style="align-self: center;">${part.status}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <div class="item-card-footer" style="margin-top: 10px;">
+            <span>Logged on: ${item.createdAt}</span>
+          </div>
         </div>
-        <div class="item-card-footer" style="margin-top: 10px;">
-          <span>Logged on: ${log.createdAt}</span>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 }
 
