@@ -17,76 +17,54 @@ const GROUPS = {
 };
 
 // Seed Data (Used if LocalStorage is empty)
-const SEED_SYLLABUS = [
-  {
-    id: 'syll-1',
-    group: 'NUSSO',
-    section: 'Horn',
-    piece: 'New Work',
-    location: 'bars 113–128',
-    domain: 'Intonation and Sound',
-    notes: 'Address pitch stability in the horn section during unison chord shifts. Keep air support consistent and review fingerings for G# transition.',
-    createdAt: '2026-08-18'
-  },
-  {
-    id: 'syll-2',
-    group: 'NUSSO',
-    section: 'Trumpet',
-    piece: 'First Suite',
-    location: 'Mvt I · bars 57–72',
-    domain: 'Articulation',
-    notes: 'Staccato articulation needs to be crisp and lightweight, matching the style of the woodwinds. Drill with standard metronome patterns.',
-    createdAt: '2026-08-19'
-  },
-  {
-    id: 'syll-3',
-    group: 'NUSWS',
-    section: 'Clarinet',
-    piece: 'First Suite',
-    location: 'Mvt III · bars 142–150',
-    domain: 'Rhythmic Accuracy',
-    notes: 'Syncopated passages must align precisely with the percussion section. Practice subdivision of eighth notes.',
-    createdAt: '2026-08-17'
-  },
-  {
-    id: 'syll-4',
-    group: 'NUSSO',
-    section: 'Percussion',
-    piece: 'New Work',
-    location: 'bar 221',
-    domain: 'Ensemble Coordination',
-    notes: 'Transition cues must be clearly conducted by the principal snare. Focus on temporal sync during tutti tempo changes.',
-    createdAt: '2026-08-19'
-  }
-];
-
-const SEED_TUTTI_FEEDBACK = [
+const SEED_TUTTI_REHEARSALS = [
   {
     id: 'tutti-1',
-    group: 'NUSSO',
-    section: 'Horn',
-    piece: 'New Work (bars 113–128)',
-    status: 'Requires further development',
-    content: 'Pitch stability remains inconsistent in the high register. Horns, please coordinate with your tutor on matching vowel placement in sectional rehearsals.',
-    createdAt: '2026-08-20'
+    date: '2026-08-23',
+    repertoire: 'Carmen Suite No. 1',
+    generalSummary: 'Strong energy in the opening Prélude. Rhythms are locking in. Main issues are string-woodwind balance in quieter sections and brass entry precision.',
+    observations: [
+      {
+        id: 'obs-1',
+        group: 'NUSSO',
+        section: 'Horn',
+        domain: 'Intonation and Sound',
+        content: 'Unstable pitch and tuning drift during unison shifts in the Intermezzo (bars 24-32). Tutors, please review breath support.',
+        status: 'Requires attention'
+      },
+      {
+        id: 'obs-2',
+        group: 'NUSSO',
+        section: 'Trumpet',
+        domain: 'Articulation',
+        content: 'Double-tonguing articulation needs to be crisper to match woodwind attacks in the Aragonaise (bars 57-72).',
+        status: 'In Progress'
+      }
+    ]
   },
   {
     id: 'tutti-2',
-    group: 'NUSSO',
-    section: 'Trumpet',
-    piece: 'First Suite (bars 57–72)',
-    status: 'Progressing',
-    content: 'Articulation showed improvement during the second run-through, but double-tonguing section needs to align closer with woodwind attacks.',
-    createdAt: '2026-08-20'
-  },
-  {
-    id: 'tutti-3',
-    group: 'NUSWS',
-    section: 'Tuba',
-    piece: 'Holst Suite (Mvt II)',
-    status: 'Requires further development',
-    content: 'Bass line sync with low reeds was lagging behind by almost half a beat in bars 30-45. Work on proactive breathing support.',
-    createdAt: '2026-08-19'
+    date: '2026-08-25',
+    repertoire: 'First Suite',
+    generalSummary: 'Excellent session. Dynamic range was impressive. Percussion cues were clean. We need to work on syncopated subdivision in the winds.',
+    observations: [
+      {
+        id: 'obs-3',
+        group: 'NUSWS',
+        section: 'Clarinet',
+        domain: 'Rhythmic Accuracy',
+        content: 'Syncopated passages must align precisely with the percussion section (Mvt III · bars 142–150). Practice subdivision of eighth notes.',
+        status: 'Requires attention'
+      },
+      {
+        id: 'obs-4',
+        group: 'NUSSO',
+        section: 'Percussion',
+        domain: 'Ensemble Coordination',
+        content: 'Snare principal should conduct transition cues more visibly during tutti tempo changes (bar 221).',
+        status: 'Resolved'
+      }
+    ]
   }
 ];
 
@@ -203,8 +181,7 @@ class DB {
   }
 
   static init() {
-    this.get('syllabus', SEED_SYLLABUS);
-    this.get('tutti_feedback', SEED_TUTTI_FEEDBACK);
+    this.get('tutti_rehearsals', SEED_TUTTI_REHEARSALS);
     this.get('lesson_plans', SEED_LESSON_PLANS);
     this.get('session_logs', SEED_SESSION_LOGS);
     this.get('repertoire', SEED_REPERTOIRE);
@@ -212,8 +189,7 @@ class DB {
   }
 
   static reset() {
-    localStorage.removeItem('cfa_db_syllabus');
-    localStorage.removeItem('cfa_db_tutti_feedback');
+    localStorage.removeItem('cfa_db_tutti_rehearsals');
     localStorage.removeItem('cfa_db_lesson_plans');
     localStorage.removeItem('cfa_db_session_logs');
     localStorage.removeItem('cfa_db_repertoire');
@@ -270,27 +246,16 @@ const dom = {
   searchDbBtn: document.getElementById('searchDbBtn'),
   queryResponsePanel: document.getElementById('queryResponsePanel'),
   
-  // Coordinator Syllabus Elements
-  syllabusForm: document.getElementById('syllabusForm'),
-  syllabusGroup: document.getElementById('syllabusGroup'),
-  syllabusSection: document.getElementById('syllabusSection'),
-  syllabusPieceSelect: document.getElementById('syllabusPieceSelect'),
-  syllabusPieceCustom: document.getElementById('syllabusPieceCustom'),
-  syllabusLocation: document.getElementById('syllabusLocation'),
-  syllabusDomain: document.getElementById('syllabusDomain'),
-  syllabusNotes: document.getElementById('syllabusNotes'),
-  syllabusList: document.getElementById('syllabusList'),
-  syllabusCountBadge: document.getElementById('syllabusCountBadge'),
-  
-  // Coordinator Tutti Feedback Elements
-  tuttiFeedbackForm: document.getElementById('tuttiFeedbackForm'),
-  tuttiGroup: document.getElementById('tuttiGroup'),
-  tuttiSection: document.getElementById('tuttiSection'),
-  tuttiRepertoireSelect: document.getElementById('tuttiRepertoireSelect'),
-  tuttiRepertoireCustom: document.getElementById('tuttiRepertoireCustom'),
-  tuttiStatus: document.getElementById('tuttiStatus'),
-  tuttiContent: document.getElementById('tuttiContent'),
-  tuttiFeedbacksList: document.getElementById('tuttiFeedbacksList'),
+  // Coordinator Rehearsal Notes Elements
+  tuttiNotesForm: document.getElementById('tuttiNotesForm'),
+  notesDate: document.getElementById('notesDate'),
+  notesRepertoireSelect: document.getElementById('notesRepertoireSelect'),
+  notesRepertoireCustom: document.getElementById('notesRepertoireCustom'),
+  notesGeneralSummary: document.getElementById('notesGeneralSummary'),
+  addObservationRowBtn: document.getElementById('addObservationRowBtn'),
+  notesObservationsContainer: document.getElementById('notesObservationsContainer'),
+  notesCountBadge: document.getElementById('notesCountBadge'),
+  tuttiRehearsalsList: document.getElementById('tuttiRehearsalsList'),
   
   // Coordinator Global Explorer Elements
   explorerSearch: document.getElementById('explorerSearch'),
@@ -300,8 +265,7 @@ const dom = {
   
   // Tutor Sectional Hub Elements
   tutorTuttiAlertContainer: document.getElementById('tutorTuttiAlertContainer'),
-  tutorSectionObjectives: document.getElementById('tutorSectionObjectives'),
-  tutorTuttiFeedbacks: document.getElementById('tutorTuttiFeedbacks'),
+  tutorTuttiObservations: document.getElementById('tutorTuttiObservations'),
   
   // Tutor Lesson Planner Elements
   lessonPlanForm: document.getElementById('lessonPlanForm'),
@@ -338,7 +302,7 @@ const dom = {
 
   // Student viewport elements
   studentTutorLogsList: document.getElementById('studentTutorLogsList'),
-  studentSyllabusList: document.getElementById('studentSyllabusList'),
+  studentSyllabusList: document.getElementById('studentTuttiObservations'),
   studentReflectionForm: document.getElementById('studentReflectionForm'),
   reflectorLogSelect: document.getElementById('reflectorLogSelect'),
   reflectorName: document.getElementById('reflectorName'),
@@ -416,19 +380,10 @@ function setupEventListeners() {
   // Database query search trigger
   dom.searchDbBtn.addEventListener('click', handleDatabaseQuery);
 
-  // Form updates sections based on group
-  dom.syllabusGroup.addEventListener('change', (e) => {
-    populateFormSections(e.target.value, dom.syllabusSection);
-    populateRepertoireDropdown(e.target.value, dom.syllabusPieceSelect, dom.syllabusPieceCustom);
-  });
-  dom.tuttiGroup.addEventListener('change', (e) => {
-    populateFormSections(e.target.value, dom.tuttiSection);
-    populateRepertoireDropdown(e.target.value, dom.tuttiRepertoireSelect, dom.tuttiRepertoireCustom);
-  });
-
   // Form Submissions
-  dom.syllabusForm.addEventListener('submit', handleSyllabusSubmit);
-  dom.tuttiFeedbackForm.addEventListener('submit', handleTuttiSubmit);
+  dom.tuttiNotesForm.addEventListener('submit', handleTuttiNotesSubmit);
+  dom.addObservationRowBtn.addEventListener('click', () => createObservationRow());
+
   dom.lessonPlanForm.addEventListener('submit', handleLessonPlanSubmit);
   dom.sessionLogForm.addEventListener('submit', handleSessionLogSubmit);
   dom.studentReflectionForm.addEventListener('submit', handleStudentReflectionSubmit);
@@ -489,13 +444,9 @@ function syncIdentity() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         Overview Dashboard
       </a>
-      <a class="nav-item" data-panel="coord-syllabus">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-        Syllabus Manager
-      </a>
-      <a class="nav-item" data-panel="coord-tutti">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Tutti Rehearsal Feedback
+      <a class="nav-item" data-panel="coord-notes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        Tutti Rehearsal Notes
       </a>
       <a class="nav-item" data-panel="coord-reflections">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -518,11 +469,12 @@ function syncIdentity() {
     document.getElementById('toggleGroupNusso').addEventListener('click', () => switchCoordinatorGroup('NUSSO'));
     document.getElementById('toggleGroupNusws').addEventListener('click', () => switchCoordinatorGroup('NUSWS'));
 
-    // Populate Section selectors in coordinator forms
-    populateFormSections(dom.syllabusGroup.value, dom.syllabusSection);
-    populateFormSections(dom.tuttiGroup.value, dom.tuttiSection);
-    populateRepertoireDropdown(dom.syllabusGroup.value, dom.syllabusPieceSelect, dom.syllabusPieceCustom);
-    populateRepertoireDropdown(dom.tuttiGroup.value, dom.tuttiRepertoireSelect, dom.tuttiRepertoireCustom);
+    // Populate Repertoire dropdowns for the coordinator
+    populateRepertoireDropdown(state.activeCoordinatorGroup, dom.notesRepertoireSelect, dom.notesRepertoireCustom);
+    
+    // Add initial clean observation row
+    dom.notesObservationsContainer.innerHTML = '';
+    createObservationRow();
     
     // Set active panel to default coordinator overview
     switchPanel('coord-overview');
@@ -623,8 +575,7 @@ function updateHeaderContent(panelId) {
   const u = state.activeUser;
   const labels = {
     'coord-overview': { title: `${state.activeCoordinatorGroup} Overview`, eyebrow: 'Coordinator Portal · Bird\'s Eye View' },
-    'coord-syllabus': { title: 'Curriculum & Objectives', eyebrow: 'Coordinator Portal · Syllabus Management' },
-    'coord-tutti': { title: 'Tutti Rehearsal Feedback', eyebrow: 'Coordinator Portal · Rehearsal Direction' },
+    'coord-notes': { title: 'Tutti Rehearsal Notes', eyebrow: 'Coordinator Portal · Conductor Rehearsal Notes' },
     'coord-explorer': { title: 'Tutor Logs Explorer', eyebrow: 'Coordinator Portal · Global Submissions' },
     'coord-reflections': { title: 'Student Reflections Feed', eyebrow: 'Coordinator Portal · Student Feedback' },
     'tutor-hub': { title: 'Sectional Hub', eyebrow: `${u.group} · ${u.section} Workspace` },
@@ -661,8 +612,7 @@ function switchCoordinatorGroup(grp) {
   populateSectionOptions(grp, dom.coordReflectionsSectionFilter);
   
   // Populate Repertoire dropdowns for the group
-  populateRepertoireDropdown(grp, dom.syllabusPieceSelect, dom.syllabusPieceCustom);
-  populateRepertoireDropdown(grp, dom.tuttiRepertoireSelect, dom.tuttiRepertoireCustom);
+  populateRepertoireDropdown(grp, dom.notesRepertoireSelect, dom.notesRepertoireCustom);
   
   renderCurrentViewportData();
 }
@@ -689,10 +639,8 @@ function renderCurrentViewportData() {
     renderOverviewPriorities();
     renderDomainCharts();
     renderOverviewSynthesis();
-  } else if (panel === 'coord-syllabus') {
-    renderCoordinatorSyllabusList();
-  } else if (panel === 'coord-tutti') {
-    renderCoordinatorTuttiList();
+  } else if (panel === 'coord-notes') {
+    renderCoordinatorNotes();
   } else if (panel === 'coord-explorer') {
     // Populate explorer sections filter if needed
     if (dom.explorerSectionFilter.children.length <= 1) {
@@ -877,75 +825,108 @@ function renderDomainCharts() {
   }).join('');
 }
 
-// == Coordinator Syllabus Objectives Page ==
-function renderCoordinatorSyllabusList() {
-  const items = DB.get('syllabus');
-  items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+// == Conductor Tutti Rehearsal Notes ==
+function createObservationRow(group = 'NUSSO', section = '', domain = 'Intonation and Sound', content = '') {
+  const rowId = 'obs-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.className = 'observation-row flex-column gap-8';
+  row.style.cssText = 'border: 1px solid var(--border-subtle); padding: 10px; border-radius: var(--radius-sm); background-color: rgba(255,255,255,0.01);';
   
-  dom.syllabusCountBadge.textContent = `${items.length} Directives Active`;
+  row.innerHTML = `
+    <div class="grid-layout grid-3 gap-10">
+      <div class="form-field">
+        <label style="font-size: 0.75rem; margin-bottom: 2px;">Ensemble</label>
+        <select class="row-group input-control" required style="padding: 4px 8px; font-size: 0.8rem; height: 32px;">
+          <option value="NUSSO" ${group === 'NUSSO' ? 'selected' : ''}>NUSSO</option>
+          <option value="NUSWS" ${group === 'NUSWS' ? 'selected' : ''}>NUSWS</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label style="font-size: 0.75rem; margin-bottom: 2px;">Section</label>
+        <select class="row-section input-control" required style="padding: 4px 8px; font-size: 0.8rem; height: 32px;">
+        </select>
+      </div>
+      <div class="form-field">
+        <label style="font-size: 0.75rem; margin-bottom: 2px;">Domain</label>
+        <select class="row-domain input-control" required style="padding: 4px 8px; font-size: 0.8rem; height: 32px;">
+          <option ${domain === 'Intonation and Sound' ? 'selected' : ''}>Intonation and Sound</option>
+          <option ${domain === 'Rhythmic Accuracy' ? 'selected' : ''}>Rhythmic Accuracy</option>
+          <option ${domain === 'Articulation' ? 'selected' : ''}>Articulation</option>
+          <option ${domain === 'Ensemble Coordination' ? 'selected' : ''}>Ensemble Coordination</option>
+          <option ${domain === 'Balance and Blend' ? 'selected' : ''}>Balance and Blend</option>
+          <option ${domain === 'Interpretation and Musical Expression' ? 'selected' : ''}>Interpretation and Musical Expression</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-field">
+      <label style="font-size: 0.75rem; margin-bottom: 2px;">Observation Details</label>
+      <div class="flex-row gap-10 items-end">
+        <textarea class="row-content textarea-control" style="height: 60px; min-height: 60px; font-size: 0.85rem;" placeholder="What should this section work on? (e.g. tuning in bars 24-32)..." required>${content}</textarea>
+        <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.observation-row').remove()" style="height: 32px;">Delete</button>
+      </div>
+    </div>
+  `;
   
-  if (items.length === 0) {
-    dom.syllabusList.innerHTML = `<p class="muted small">No syllabus objectives established. Create one using the form.</p>`;
+  dom.notesObservationsContainer.appendChild(row);
+  
+  const groupSelect = row.querySelector('.row-group');
+  const sectionSelect = row.querySelector('.row-section');
+  
+  const updateSections = (g) => {
+    populateFormSections(g, sectionSelect);
+    if (section && g === group) {
+      sectionSelect.value = section;
+    }
+  };
+  
+  groupSelect.addEventListener('change', (e) => updateSections(e.target.value));
+  updateSections(group);
+}
+
+function renderCoordinatorNotes() {
+  const list = DB.get('tutti_rehearsals');
+  list.sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  dom.notesCountBadge.textContent = `${list.length} Logs`;
+  
+  if (list.length === 0) {
+    dom.tuttiRehearsalsList.innerHTML = `<p class="muted small">No tutti rehearsal logs recorded yet.</p>`;
     return;
   }
   
-  dom.syllabusList.innerHTML = items.map(item => `
-    <article class="item-card bg-glass">
+  dom.tuttiRehearsalsList.innerHTML = list.map(item => `
+    <article class="item-card bg-glass animate-fade-in">
       <div class="item-card-header">
         <div>
-          <span class="badge badge-accent" style="margin-right: 6px;">${item.group}</span>
-          <strong class="item-card-title">${item.section} Section</strong>
+          <strong class="item-card-title">${item.repertoire}</strong>
+          <span class="xs muted" style="margin-left: 8px;">Date: ${item.date}</span>
         </div>
-        <button class="btn btn-xs btn-outline text-red" onclick="deleteSyllabusItem('${item.id}')">Delete</button>
+        <button class="btn btn-xs btn-outline text-red" onclick="deleteTuttiRehearsal('${item.id}')">Delete</button>
       </div>
-      <div class="item-card-meta">
-        Repertoire: <strong>${item.piece}</strong> (${item.location}) <br>
-        Domain: <strong>${item.domain}</strong>
-      </div>
-      <p class="item-card-body">${item.notes}</p>
-      <div class="item-card-footer">
-        <span>Published on: ${item.createdAt}</span>
-        <span>Authorized Directive</span>
+      <p class="item-card-body small" style="background-color: rgba(255,255,255,0.02); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 6px;">
+        <strong>General Rehearsal Summary:</strong><br>
+        ${item.generalSummary}
+      </p>
+      <div class="flex-column gap-6" style="margin-top: 10px;">
+        <strong>Target Sectional Observations:</strong>
+        ${item.observations.length === 0 ? '<span class="xs muted">None recorded.</span>' : item.observations.map(obs => {
+          let statusClass = 'badge-yellow';
+          if (obs.status === 'Resolved') statusClass = 'badge-green';
+          if (obs.status === 'Requires attention') statusClass = 'badge-red';
+          return `
+            <div class="table-row justify-between" style="padding: 6px 8px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem;">
+              <div style="flex: 1; padding-right: 12px;">
+                <strong class="text-cyan">[${obs.group} ${obs.section}]</strong> (${obs.domain})<br>
+                <span class="muted">${obs.content}</span>
+              </div>
+              <span class="badge ${statusClass}" style="align-self: center;">${obs.status}</span>
+            </div>
+          `;
+        }).join('')}
       </div>
     </article>
   `).join('');
-}
-
-// == Coordinator Tutti Rehearsal Feedback ==
-function renderCoordinatorTuttiList() {
-  const items = DB.get('tutti_feedback');
-  items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  
-  if (items.length === 0) {
-    dom.tuttiFeedbacksList.innerHTML = `<p class="muted small">No tutti feedbacks recorded yet.</p>`;
-    return;
-  }
-  
-  dom.tuttiFeedbacksList.innerHTML = items.map(item => {
-    let badgeClass = 'badge-yellow';
-    if (item.status === 'Requires further development') badgeClass = 'badge-red';
-    if (item.status === 'Demonstrated') badgeClass = 'badge-green';
-    
-    return `
-      <article class="item-card bg-glass">
-        <div class="item-card-header">
-          <div>
-            <span class="badge badge-accent" style="margin-right: 6px;">${item.group}</span>
-            <strong class="item-card-title">${item.section} Section</strong>
-          </div>
-          <button class="btn btn-xs btn-outline text-red" onclick="deleteTuttiItem('${item.id}')">Delete</button>
-        </div>
-        <div class="item-card-meta">
-          Focus: <strong>${item.piece}</strong>
-        </div>
-        <p class="item-card-body">${item.content}</p>
-        <div class="item-card-footer">
-          <span>Priority: <span class="badge ${badgeClass}">${item.status}</span></span>
-          <span>Logged: ${item.createdAt}</span>
-        </div>
-      </article>
-    `;
-  }).join('');
 }
 
 // == Coordinator Logs Explorer Page ==
@@ -1024,22 +1005,37 @@ function renderGlobalLogsExplorer() {
 // == Tutor Section Hub ==
 function renderTutorHub() {
   const u = state.activeUser;
+  if (!u) return;
+
+  const rehearsals = DB.get('tutti_rehearsals');
   
-  // SECURE PRIVACY FILTERING: Only extract objectives matching tutor's group and section
-  const syllabus = DB.get('syllabus').filter(item => item.group === u.group && item.section === u.section);
-  const feedback = DB.get('tutti_feedback').filter(item => item.group === u.group && item.section === u.section);
-  
-  // Render Tutti alerts
-  const urgentFeedback = feedback.filter(f => f.status === 'Requires further development');
-  if (urgentFeedback.length > 0) {
+  // Find all observations matching this tutor's section
+  const myObservations = [];
+  rehearsals.forEach(reh => {
+    reh.observations.forEach(obs => {
+      if (obs.group === u.group && obs.section === u.section) {
+        myObservations.push({
+          rehearsalId: reh.id,
+          date: reh.date,
+          repertoire: reh.repertoire,
+          generalSummary: reh.generalSummary,
+          ...obs
+        });
+      }
+    });
+  });
+
+  // Render Tutti alerts: if there are observations marked 'Requires attention'
+  const urgentObs = myObservations.filter(o => o.status === 'Requires attention');
+  if (urgentObs.length > 0) {
     dom.tutorTuttiAlertContainer.innerHTML = `
       <div class="rehearsal-alert">
         <div class="alert-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </div>
         <div class="alert-body">
-          <h4>Urgent Tutti Rehearsal Alert</h4>
-          <p>Coordinators requested immediate development on <strong>${urgentFeedback[0].piece}</strong>. Coordinator remarks: "${urgentFeedback[0].content}"</p>
+          <h4>Conductor Attention Required</h4>
+          <p>Tutti rehearsal on <strong>${urgentObs[0].date}</strong> highlights: <em>"${urgentObs[0].content}"</em></p>
         </div>
       </div>
     `;
@@ -1047,39 +1043,36 @@ function renderTutorHub() {
     dom.tutorTuttiAlertContainer.innerHTML = '';
   }
 
-  // Objectives List
-  if (syllabus.length === 0) {
-    dom.tutorSectionObjectives.innerHTML = `<p class="muted small">No objectives currently set by coordinators for the ${u.section} section.</p>`;
+  // Render Conductor's Observations List
+  if (myObservations.length === 0) {
+    dom.tutorTuttiObservations.innerHTML = `<p class="muted small">No rehearsal observations logged by the conductor for the ${u.section} section.</p>`;
   } else {
-    dom.tutorSectionObjectives.innerHTML = syllabus.map(item => `
-      <div class="item-card bg-glass">
-        <div class="item-card-header">
-          <strong class="item-card-title">${item.piece}</strong>
-          <span class="badge badge-accent">${item.domain}</span>
-        </div>
-        <p class="small">${item.notes}</p>
-        <div class="xs muted">Target: ${item.location} · Assigned: ${item.createdAt}</div>
-      </div>
-    `).join('');
-  }
-
-  // Tutti Feedback List
-  if (feedback.length === 0) {
-    dom.tutorTuttiFeedbacks.innerHTML = `<p class="muted small">No tutti feedback logged for your section.</p>`;
-  } else {
-    dom.tutorTuttiFeedbacks.innerHTML = feedback.map(item => {
+    myObservations.sort((a, b) => new Date(b.date) - new Date(a.date));
+    dom.tutorTuttiObservations.innerHTML = myObservations.map(obs => {
       let statusClass = 'badge-yellow';
-      if (item.status === 'Requires further development') statusClass = 'badge-red';
-      if (item.status === 'Demonstrated') statusClass = 'badge-green';
+      if (obs.status === 'Resolved') statusClass = 'badge-green';
+      if (obs.status === 'Requires attention') statusClass = 'badge-red';
+      if (obs.status === 'In Progress') statusClass = 'badge-yellow';
       
       return `
-        <div class="item-card bg-glass">
+        <div class="item-card bg-glass" style="margin-top: 8px;">
           <div class="item-card-header">
-            <strong>${item.piece}</strong>
-            <span class="badge ${statusClass}">${item.status}</span>
+            <div>
+              <strong class="item-card-title">${obs.repertoire}</strong>
+              <span class="xs muted" style="margin-left: 8px;">Tutti Date: ${obs.date}</span>
+            </div>
+            <div class="flex-row items-center gap-10">
+              <span class="badge ${statusClass}">${obs.status}</span>
+              ${obs.status !== 'Resolved' ? `<button class="btn btn-xs btn-primary" onclick="prefillPlannerFromObservation('${obs.id}')">Plan Sectional</button>` : ''}
+            </div>
           </div>
-          <p class="small">${item.content}</p>
-          <div class="xs muted">Logged on: ${item.createdAt}</div>
+          <div class="item-card-meta">
+            Domain: <strong>${obs.domain}</strong>
+          </div>
+          <p class="small" style="margin-top: 6px;"><strong>Conductor's Feedback:</strong><br> ${obs.content}</p>
+          <div class="xs muted" style="margin-top: 8px; font-style: italic; border-top: 1px dashed var(--border-subtle); padding-top: 4px;">
+            General Rehearsal Context: "${obs.generalSummary.slice(0, 120)}..."
+          </div>
         </div>
       `;
     }).join('');
@@ -1221,74 +1214,55 @@ function renderTutorLogsArchive() {
 
 
 // 8. Form Submission Handlers
-function handleSyllabusSubmit(e) {
+function handleTuttiNotesSubmit(e) {
   e.preventDefault();
   
-  const pieceTitle = getSubmittedRepertoire(dom.syllabusPieceSelect, dom.syllabusPieceCustom, dom.syllabusGroup.value);
+  const pieceTitle = getSubmittedRepertoire(dom.notesRepertoireSelect, dom.notesRepertoireCustom, state.activeCoordinatorGroup);
   if (!pieceTitle) {
     alert('Please select or specify a repertoire title.');
     return;
   }
 
-  const newItem = {
-    id: 'syll-' + Date.now(),
-    group: dom.syllabusGroup.value,
-    section: dom.syllabusSection.value,
-    piece: pieceTitle,
-    location: dom.syllabusLocation.value.trim(),
-    domain: dom.syllabusDomain.value,
-    notes: dom.syllabusNotes.value.trim(),
-    createdAt: new Date().toISOString().split('T')[0]
-  };
-  
-  const current = DB.get('syllabus');
-  current.push(newItem);
-  DB.set('syllabus', current);
-  
-  // Clear Form
-  dom.syllabusPieceSelect.value = '';
-  dom.syllabusPieceCustom.value = '';
-  dom.syllabusPieceCustom.style.display = 'none';
-  dom.syllabusLocation.value = '';
-  dom.syllabusNotes.value = '';
-  
-  populateRepertoireDropdown(dom.syllabusGroup.value, dom.syllabusPieceSelect, dom.syllabusPieceCustom);
-  renderCoordinatorSyllabusList();
-  alert('Objective published successfully to section tutors!');
-}
-
-function handleTuttiSubmit(e) {
-  e.preventDefault();
-  
-  const pieceTitle = getSubmittedRepertoire(dom.tuttiRepertoireSelect, dom.tuttiRepertoireCustom, dom.tuttiGroup.value);
-  if (!pieceTitle) {
-    alert('Please select or specify a repertoire title.');
-    return;
-  }
+  const observations = [];
+  const rows = dom.notesObservationsContainer.querySelectorAll('.observation-row');
+  rows.forEach(row => {
+    const g = row.querySelector('.row-group').value;
+    const s = row.querySelector('.row-section').value;
+    const d = row.querySelector('.row-domain').value;
+    const c = row.querySelector('.row-content').value.trim();
+    if (c) {
+      observations.push({
+        id: 'obs-' + Date.now() + Math.random().toString(36).substr(2, 5),
+        group: g,
+        section: s,
+        domain: d,
+        content: c,
+        status: 'Requires attention'
+      });
+    }
+  });
 
   const newItem = {
     id: 'tutti-' + Date.now(),
-    group: dom.tuttiGroup.value,
-    section: dom.tuttiSection.value,
-    piece: pieceTitle,
-    status: dom.tuttiStatus.value,
-    content: dom.tuttiContent.value.trim(),
-    createdAt: new Date().toISOString().split('T')[0]
+    date: dom.notesDate.value,
+    repertoire: pieceTitle,
+    generalSummary: dom.notesGeneralSummary.value.trim(),
+    observations: observations
   };
-  
-  const current = DB.get('tutti_feedback');
+
+  const current = DB.get('tutti_rehearsals');
   current.push(newItem);
-  DB.set('tutti_feedback', current);
-  
+  DB.set('tutti_rehearsals', current);
+
   // Clear Form
-  dom.tuttiRepertoireSelect.value = '';
-  dom.tuttiRepertoireCustom.value = '';
-  dom.tuttiRepertoireCustom.style.display = 'none';
-  dom.tuttiContent.value = '';
-  
-  populateRepertoireDropdown(dom.tuttiGroup.value, dom.tuttiRepertoireSelect, dom.tuttiRepertoireCustom);
-  renderCoordinatorTuttiList();
-  alert('Tutti rehearsal feedback logged successfully!');
+  dom.notesDate.value = '';
+  dom.notesGeneralSummary.value = '';
+  dom.notesObservationsContainer.innerHTML = '';
+  createObservationRow(); // Add one clean row
+
+  populateRepertoireDropdown(state.activeCoordinatorGroup, dom.notesRepertoireSelect, dom.notesRepertoireCustom);
+  renderCoordinatorNotes();
+  alert('Conductor rehearsal notes published successfully!');
 }
 
 function handleLessonPlanSubmit(e) {
@@ -1353,6 +1327,27 @@ function handleSessionLogSubmit(e) {
   const current = DB.get('session_logs');
   current.push(newItem);
   DB.set('session_logs', current);
+
+  // Update matching conductor observations in DB
+  const rehearsals = DB.get('tutti_rehearsals');
+  let updated = false;
+  rehearsals.forEach(reh => {
+    if (reh.repertoire === pieceTitle) {
+      reh.observations.forEach(obs => {
+        if (obs.group === u.group && obs.section === u.section && obs.domain === dom.logDomain.value) {
+          if (dom.logLevel.value === 'Demonstrated') {
+            obs.status = 'Resolved';
+          } else {
+            obs.status = 'In Progress';
+          }
+          updated = true;
+        }
+      });
+    }
+  });
+  if (updated) {
+    DB.set('tutti_rehearsals', rehearsals);
+  }
   
   // Clear Form
   dom.logRepertoireSelect.value = '';
@@ -1367,6 +1362,14 @@ function handleSessionLogSubmit(e) {
 
 
 // 9. Deletion Actions (Globals defined on window for onclick calls)
+window.deleteTuttiRehearsal = function(id) {
+  if (confirm('Delete this tutti rehearsal notes log?')) {
+    const list = DB.get('tutti_rehearsals').filter(item => item.id !== id);
+    DB.set('tutti_rehearsals', list);
+    renderCoordinatorNotes();
+  }
+};
+
 window.deleteSyllabusItem = function(id) {
   if (confirm('Delete this syllabus objective?')) {
     const list = DB.get('syllabus').filter(item => item.id !== id);
@@ -1553,21 +1556,47 @@ function renderStudentHub() {
   const u = state.activeUser;
   if (!u) return;
 
-  // 1. Render coordinator objectives
-  const syllabus = DB.get('syllabus').filter(item => item.group === u.group && item.section === u.section);
-  if (syllabus.length === 0) {
-    dom.studentSyllabusList.innerHTML = `<p class="muted small">No objectives currently set by coordinators for the ${u.section} section.</p>`;
+  // 1. Render Conductor Rehearsal Observations
+  const rehearsals = DB.get('tutti_rehearsals');
+  const myObservations = [];
+  rehearsals.forEach(reh => {
+    reh.observations.forEach(obs => {
+      if (obs.group === u.group && obs.section === u.section) {
+        myObservations.push({
+          date: reh.date,
+          repertoire: reh.repertoire,
+          ...obs
+        });
+      }
+    });
+  });
+
+  if (myObservations.length === 0) {
+    dom.studentSyllabusList.innerHTML = `<p class="muted small">No rehearsal observations logged by the conductor for the ${u.section} section.</p>`;
   } else {
-    dom.studentSyllabusList.innerHTML = syllabus.map(item => `
-      <div class="item-card bg-glass animate-fade-in">
-        <div class="item-card-header">
-          <strong class="item-card-title">${item.piece}</strong>
-          <span class="badge badge-accent">${item.domain}</span>
+    myObservations.sort((a, b) => new Date(b.date) - new Date(a.date));
+    dom.studentSyllabusList.innerHTML = myObservations.map(obs => {
+      let statusClass = 'badge-yellow';
+      if (obs.status === 'Resolved') statusClass = 'badge-green';
+      if (obs.status === 'Requires attention') statusClass = 'badge-red';
+      if (obs.status === 'In Progress') statusClass = 'badge-yellow';
+      
+      return `
+        <div class="item-card bg-glass animate-fade-in">
+          <div class="item-card-header">
+            <div>
+              <strong class="item-card-title">${obs.repertoire}</strong>
+              <span class="xs muted" style="margin-left: 8px;">Tutti Date: ${obs.date}</span>
+            </div>
+            <span class="badge ${statusClass}">${obs.status}</span>
+          </div>
+          <div class="item-card-meta">
+            Domain: <strong>${obs.domain}</strong>
+          </div>
+          <p class="small" style="margin-top: 6px;"><strong>Conductor Observation:</strong><br> ${obs.content}</p>
         </div>
-        <p class="small">${item.notes}</p>
-        <div class="xs muted">Target: ${item.location} · Assigned: ${item.createdAt}</div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   // 2. Render tutor session logs
@@ -1833,6 +1862,60 @@ window.prefillCheckinForm = function(repertoire, domain) {
 
   // Use prefillLoggerForm helper
   prefillLoggerForm(repertoire, domain);
+};
+
+window.prefillPlannerFromObservation = function(obsId) {
+  const u = state.activeUser;
+  if (!u) return;
+
+  const rehearsals = DB.get('tutti_rehearsals');
+  let matchedObs = null;
+  rehearsals.forEach(reh => {
+    reh.observations.forEach(obs => {
+      if (obs.id === obsId) {
+        matchedObs = { ...obs, date: reh.date, repertoire: reh.repertoire };
+      }
+    });
+  });
+
+  if (!matchedObs) {
+    alert('Conductor observation not found.');
+    return;
+  }
+
+  // Switch to Planner panel
+  const navItems = dom.sidebarNav.querySelectorAll('.nav-item');
+  navItems.forEach(b => b.classList.remove('active'));
+  const btnPlanner = dom.sidebarNav.querySelector('[data-panel="tutor-planner"]');
+  if (btnPlanner) btnPlanner.classList.add('active');
+  switchPanel('tutor-planner');
+
+  // Fill in the Planner form fields
+  dom.planDomain.value = matchedObs.domain;
+  
+  // Prefill repertoire select
+  let found = false;
+  for (let i = 0; i < dom.planRepertoireSelect.options.length; i++) {
+    if (dom.planRepertoireSelect.options[i].value === matchedObs.repertoire) {
+      dom.planRepertoireSelect.value = matchedObs.repertoire;
+      found = true;
+      break;
+    }
+  }
+  
+  if (!found) {
+    dom.planRepertoireSelect.value = '__custom__';
+    dom.planRepertoireCustom.style.display = 'block';
+    dom.planRepertoireCustom.required = true;
+    dom.planRepertoireCustom.value = matchedObs.repertoire;
+  } else {
+    dom.planRepertoireCustom.style.display = 'none';
+    dom.planRepertoireCustom.required = false;
+  }
+
+  dom.planLocation.value = 'Bars/Mvt matching rehearsal notes';
+  dom.planStrategy.value = `Focus: Address Conductor Feedback from ${matchedObs.date}\nFeedback context: "${matchedObs.content}"\n\nSectional strategy:\n`;
+  dom.planStrategy.focus();
 };
 
 // Kickstart on document load

@@ -217,119 +217,56 @@
           </div>
         </section>
 
-        <!-- 2. Coordinator Syllabus & Objectives Panel -->
-        <section id="coord-syllabus" class="panel">
+        <!-- 2. Conductor Tutti Rehearsal Notes Panel -->
+        <section id="coord-notes" class="panel">
           <div class="grid-layout grid-1-2">
-            <!-- Left Form: Create Objectives -->
+            <!-- Left Form: Create Rehearsal Notes -->
             <div class="dashboard-card bg-glass">
               <div class="card-header">
-                <h2>Set Learning Objective</h2>
+                <h2>Record Tutti Rehearsal Notes</h2>
               </div>
-              <form id="syllabusForm" class="flex-column gap-14">
-                <div class="form-field">
-                  <label for="syllabusGroup">Ensemble Group</label>
-                  <select id="syllabusGroup" class="input-control" required>
-                    <option value="NUSSO">NUSSO (Symphony Orchestra)</option>
-                    <option value="NUSWS">NUSWS (Wind Symphony)</option>
-                  </select>
+              <p class="muted small mb-12">Log general notes from the conductor and targeted observations for sections to address in their sectional lessons.</p>
+              <form id="tuttiNotesForm" class="flex-column gap-14">
+                <div class="grid-2 gap-10">
+                  <div class="form-field">
+                    <label for="notesDate">Rehearsal Date</label>
+                    <input type="date" id="notesDate" class="input-control" required />
+                  </div>
+                  <div class="form-field">
+                    <label for="notesRepertoireSelect">Repertoire Rehearsed</label>
+                    <select id="notesRepertoireSelect" class="input-control" required></select>
+                    <input type="text" id="notesRepertoireCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
+                  </div>
                 </div>
+
                 <div class="form-field">
-                  <label for="syllabusSection">Target Section</label>
-                  <select id="syllabusSection" class="input-control" required>
-                    <!-- Populated dynamically based on Group -->
-                  </select>
+                  <label for="notesGeneralSummary">Conductor's General Notes</label>
+                  <textarea id="notesGeneralSummary" class="textarea-control" placeholder="Overall notes (e.g. general energy, tempos, tutti coordination highlights)..." required></textarea>
                 </div>
-                <div class="form-field">
-                  <label for="syllabusPieceSelect">Target Repertoire</label>
-                  <select id="syllabusPieceSelect" class="input-control" required></select>
-                  <input type="text" id="syllabusPieceCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
+
+                <div class="divider" style="margin: 10px 0; border-top: 1px dashed var(--border-subtle);"></div>
+                
+                <div class="flex-row justify-between items-center">
+                  <h3 style="font-size: 1rem; font-weight: 600;">Sectional Observations</h3>
+                  <button type="button" id="addObservationRowBtn" class="btn btn-xs btn-outline">+ Add Section</button>
                 </div>
-                <div class="form-field">
-                  <label for="syllabusLocation">Specific Locations (Bars / Mvt)</label>
-                  <input type="text" id="syllabusLocation" class="input-control" placeholder="e.g. Mvt III, bars 50-82" required />
+                <p class="muted small">Add target feedback points for specific sections. Tutors will see these and plan sectionals around them.</p>
+
+                <div id="notesObservationsContainer" class="flex-column gap-12" style="margin-top: 8px;">
+                  <!-- Dynamic observation rows will be inserted here -->
                 </div>
-                <div class="form-field">
-                  <label for="syllabusDomain">Learning Domain</label>
-                  <select id="syllabusDomain" class="input-control" required>
-                    <option>Intonation and Sound</option>
-                    <option>Rhythmic Accuracy</option>
-                    <option>Articulation</option>
-                    <option>Ensemble Coordination</option>
-                    <option>Balance and Blend</option>
-                    <option>Interpretation and Musical Expression</option>
-                  </select>
-                </div>
-                <div class="form-field">
-                  <label for="syllabusNotes">Pedagogical Directives & Objectives</label>
-                  <textarea id="syllabusNotes" class="textarea-control" placeholder="Details: Worked notes, focus pacing, specific techniques to drill..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Establish Curriculum Directive</button>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 12px;">Publish Rehearsal Notes</button>
               </form>
             </div>
 
-            <!-- Right: Current Syllabus Objectives List -->
+            <!-- Right: Tutti Rehearsal Notes Archive -->
             <div class="dashboard-card bg-glass">
               <div class="card-header-actions">
-                <h2>Active Curriculum Directives</h2>
-                <span class="badge" id="syllabusCountBadge">0 Directives Active</span>
+                <h2>Conductor's Rehearsal Logs</h2>
+                <span class="badge" id="notesCountBadge">0 Logs</span>
               </div>
-              <div class="flex-column gap-12" id="syllabusList" style="margin-top: 14px;">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 3. Coordinator Tutti Feedback Panel -->
-        <section id="coord-tutti" class="panel">
-          <div class="grid-layout grid-1-2">
-            <!-- Left Form: Create Feedback -->
-            <div class="dashboard-card bg-glass">
-              <div class="card-header">
-                <h2>Record Tutti Rehearsal Feedback</h2>
-              </div>
-              <p class="muted small mb-12">Log specific feedback points that tutors should read and address in their sectionals.</p>
-              <form id="tuttiFeedbackForm" class="flex-column gap-14">
-                <div class="form-field">
-                  <label for="tuttiGroup">Ensemble Group</label>
-                  <select id="tuttiGroup" class="input-control" required>
-                    <option value="NUSSO">NUSSO (Symphony Orchestra)</option>
-                    <option value="NUSWS">NUSWS (Wind Symphony)</option>
-                  </select>
-                </div>
-                <div class="form-field">
-                  <label for="tuttiSection">Target Section</label>
-                  <select id="tuttiSection" class="input-control" required>
-                    <!-- Populated dynamically -->
-                  </select>
-                </div>
-                <div class="form-field">
-                  <label for="tuttiRepertoireSelect">Repertoire Reference</label>
-                  <select id="tuttiRepertoireSelect" class="input-control" required></select>
-                  <input type="text" id="tuttiRepertoireCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
-                </div>
-                <div class="form-field">
-                  <label for="tuttiStatus">Urgency / Action Priority</label>
-                  <select id="tuttiStatus" class="input-control" required>
-                    <option value="Requires further development">High Priority (Requires Development)</option>
-                    <option value="Progressing">Medium Priority (Progressing)</option>
-                    <option value="Demonstrated">Completed (Demonstrated)</option>
-                  </select>
-                </div>
-                <div class="form-field">
-                  <label for="tuttiContent">Feedback & Coordinator Notes</label>
-                  <textarea id="tuttiContent" class="textarea-control" placeholder="Enter comments here on what failed in the tutti and what needs to be addressed in the sectional session." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Publish Tutti Feedback</button>
-              </form>
-            </div>
-
-            <!-- Right List: Rehearsal Feedbacks -->
-            <div class="dashboard-card bg-glass">
-              <div class="card-header">
-                <h2>Published Tutti Feedbacks Archive</h2>
-              </div>
-              <div class="flex-column gap-12" id="tuttiFeedbacksList" style="margin-top: 14px;">
+              <div class="flex-column gap-12" id="tuttiRehearsalsList" style="margin-top: 14px;">
                 <!-- Populated dynamically -->
               </div>
             </div>
@@ -387,24 +324,25 @@
 
         <!-- 1. Tutor Sectional Overview & Hub Panel -->
         <section id="tutor-hub" class="panel">
-          <!-- Notice alert if there is critical Tutti Feedback from coordinator -->
+          <!-- Notice alert if there are new Conductor Observations -->
           <div id="tutorTuttiAlertContainer"></div>
 
           <div class="grid-layout grid-2-1">
-            <!-- Left: Objectives for my Section -->
+            <!-- Left Column: Conductor Observations & Check-ins -->
             <div class="flex-column gap-16">
+              <!-- Conductor Rehearsal Observations -->
               <div class="dashboard-card bg-glass">
                 <div class="card-header">
-                  <h2>Syllabus Objectives for Your Section</h2>
+                  <h2>Conductor's Rehearsal Observations</h2>
                 </div>
-                <p class="muted small">High-level goals assigned to your section by the program coordinators.</p>
-                <div class="flex-column gap-12" id="tutorSectionObjectives" style="margin-top: 14px;">
-                  <!-- Dynamic content -->
+                <p class="muted small">Tutti rehearsal observations and feedback target areas from the conductor.</p>
+                <div class="flex-column gap-12" id="tutorTuttiObservations" style="margin-top: 14px;">
+                  <!-- Populated dynamically -->
                 </div>
               </div>
 
               <!-- Rehearsal Check-in Reminders -->
-              <div class="dashboard-card bg-glass" style="margin-top: 16px;">
+              <div class="dashboard-card bg-glass">
                 <div class="card-header">
                   <div class="flex-row items-center gap-10">
                     <span class="pulse-dot" style="background-color: var(--status-yellow); box-shadow: 0 0 6px var(--status-yellow);"></span>
@@ -417,28 +355,17 @@
                   <!-- Populated dynamically -->
                 </div>
               </div>
+            </div>
 
-              <!-- Student Reflections Feed -->
-              <div class="dashboard-card bg-glass" style="margin-top: 16px;">
+            <!-- Right Column: Student Reflections Feed -->
+            <div class="flex-column gap-16">
+              <div class="dashboard-card bg-glass">
                 <div class="card-header">
                   <h2>Student Reflections Feed</h2>
                 </div>
                 <p class="muted small">Direct insights and challenges shared by section students after rehearsal sessions.</p>
                 <div class="flex-column gap-12" id="tutorStudentReflectionsList" style="margin-top: 14px;">
                   <!-- Populated dynamically -->
-                </div>
-              </div>
-            </div>
-
-            <!-- Right: Tutti Feedback for my Section -->
-            <div class="flex-column gap-16">
-              <div class="dashboard-card bg-glass">
-                <div class="card-header">
-                  <h2>Tutti Feedback Archive</h2>
-                </div>
-                <p class="muted small">Coordinator feedback points matching your section.</p>
-                <div class="flex-column gap-12" id="tutorTuttiFeedbacks" style="margin-top: 14px;">
-                  <!-- Dynamic content -->
                 </div>
               </div>
             </div>
@@ -606,14 +533,14 @@
               </div>
             </div>
             
-            <!-- Right: Coordinator Objectives -->
+            <!-- Right: Conductor Observations -->
             <div class="flex-column gap-16">
               <div class="dashboard-card bg-glass">
                 <div class="card-header">
-                  <h2>Section Syllabus Goals</h2>
+                  <h2>Conductor's Rehearsal Observations</h2>
                 </div>
-                <p class="muted small">Active learning objectives assigned by program coordinators.</p>
-                <div class="flex-column gap-12" id="studentSyllabusList" style="margin-top: 14px;">
+                <p class="muted small">Direct feedback points logged by the conductor during tutti rehearsals.</p>
+                <div class="flex-column gap-12" id="studentTuttiObservations" style="margin-top: 14px;">
                   <!-- Dynamic content -->
                 </div>
               </div>
