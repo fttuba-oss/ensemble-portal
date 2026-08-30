@@ -310,46 +310,30 @@
           <!-- Notice alert if there are new Conductor Observations -->
           <div id="tutorTuttiAlertContainer"></div>
 
-          <div class="grid-layout grid-2-1">
-            <!-- Left Column: Conductor Observations & Check-ins -->
-            <div class="flex-column gap-16">
-              <!-- Conductor Rehearsal Observations -->
-              <div class="dashboard-card bg-glass">
-                <div class="card-header">
-                  <h2>Conductor's Feedback for Section</h2>
-                </div>
-                <p class="muted small">Tutti rehearsal observations and feedback target areas from the conductor.</p>
-                <div class="flex-column gap-12" id="tutorTuttiObservations" style="margin-top: 14px;">
-                  <!-- Populated dynamically -->
-                </div>
+          <div class="flex-column gap-16" style="max-width: 850px; margin: 0 auto;">
+            <!-- Conductor's Feedback for Section -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <h2>Conductor's Feedback for Section</h2>
               </div>
-
-              <!-- Rehearsal Check-in Reminders -->
-              <div class="dashboard-card bg-glass">
-                <div class="card-header">
-                  <div class="flex-row items-center gap-10">
-                    <span class="pulse-dot" style="background-color: var(--status-yellow); box-shadow: 0 0 6px var(--status-yellow);"></span>
-                    <h2>Rehearsal Check-in Reminders</h2>
-                  </div>
-                  <span class="badge badge-yellow">Action Required</span>
-                </div>
-                <p class="muted small">Repertoire items marked as in progress during recent sectionals that require verification.</p>
-                <div class="flex-column gap-12" id="tutorCheckinReminders" style="margin-top: 14px;">
-                  <!-- Populated dynamically -->
-                </div>
+              <p class="muted small">Tutti rehearsal observations and feedback target areas from the conductor.</p>
+              <div class="flex-column gap-12" id="tutorTuttiObservations" style="margin-top: 14px;">
+                <!-- Populated dynamically -->
               </div>
             </div>
 
-            <!-- Right Column: Student Reflections Feed -->
-            <div class="flex-column gap-16">
-              <div class="dashboard-card bg-glass">
-                <div class="card-header">
-                  <h2>Student Reflections Feed</h2>
+            <!-- Rehearsal Check-in Reminders -->
+            <div class="dashboard-card bg-glass">
+              <div class="card-header">
+                <div class="flex-row items-center gap-10">
+                  <span class="pulse-dot" style="background-color: var(--status-yellow); box-shadow: 0 0 6px var(--status-yellow);"></span>
+                  <h2>Rehearsal Check-in Reminders</h2>
                 </div>
-                <p class="muted small">Direct insights and challenges shared by section students after rehearsal sessions.</p>
-                <div class="flex-column gap-12" id="tutorStudentReflectionsList" style="margin-top: 14px;">
-                  <!-- Populated dynamically -->
-                </div>
+                <span class="badge badge-yellow">Action Required</span>
+              </div>
+              <p class="muted small">Repertoire items marked as in progress during recent sectionals that require verification.</p>
+              <div class="flex-column gap-12" id="tutorCheckinReminders" style="margin-top: 14px;">
+                <!-- Populated dynamically -->
               </div>
             </div>
           </div>

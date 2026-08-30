@@ -273,8 +273,7 @@ const dom = {
   // Tutor Logs Archive Elements
   tutorLogsList: document.getElementById('tutorLogsList'),
 
-  // Tutor student reflections
-  tutorStudentReflectionsList: document.getElementById('tutorStudentReflectionsList'),
+
 
   // Tutor check-in reminders
   tutorCheckinReminders: document.getElementById('tutorCheckinReminders'),
@@ -1015,25 +1014,7 @@ function renderTutorHub() {
     }).join('');
   }
 
-  // Student Reflections Feed
-  const reflections = DB.get('student_reflections').filter(r => r.group === u.group && r.section === u.section);
-  if (reflections.length === 0) {
-    dom.tutorStudentReflectionsList.innerHTML = `<p class="muted small">No student reflections logged for your section yet.</p>`;
-  } else {
-    dom.tutorStudentReflectionsList.innerHTML = reflections.map(r => `
-      <div class="item-card bg-glass" style="margin-top: 8px;">
-        <div class="item-card-header">
-          <strong>${r.piece}</strong>
-          <span class="badge badge-accent">Confidence: ${r.rating}/5</span>
-        </div>
-        <div class="item-card-meta">
-          Submitted by: <strong>${r.studentName}</strong> on ${r.createdAt}
-        </div>
-        <p class="small" style="margin-top: 6px;"><strong>Challenges:</strong> ${r.challenges}</p>
-        <p class="small" style="font-style: italic; margin-top: 4px;">"${r.content}"</p>
-      </div>
-    `).join('');
-  }
+
 
   // Render check-in reminders
   renderTutorCheckinReminders();
