@@ -985,7 +985,7 @@ function renderGlobalLogsExplorer() {
           ${item.generalFeedback}
         </p>
         <div class="flex-column gap-6" style="margin-top: 10px;">
-          <strong>Section Attainments:</strong>
+          <strong>Section Progress:</strong>
           ${item.parts.map(part => {
             let badgeClass = 'badge-yellow';
             if (part.status === 'Requires further development') badgeClass = 'badge-red';
@@ -1312,7 +1312,7 @@ function prefillLoggerForm(repertoire) {
           ${item.generalFeedback}
         </p>
         <div class="flex-column gap-6" style="margin-top: 10px;">
-          <strong>Section-by-Section Outcomes:</strong>
+          <strong>Section Progress:</strong>
           ${item.parts.map(part => {
             let badgeClass = 'badge-yellow';
             if (part.status === 'Requires further development') badgeClass = 'badge-red';
@@ -1801,7 +1801,7 @@ function renderStudentHub() {
             ${item.generalFeedback}
           </p>
           <div class="flex-column gap-6" style="margin-top: 10px;">
-            <strong>Rehearsed Sections:</strong>
+            <strong>Section Progress:</strong>
             ${item.parts.map(part => {
               let badgeClass = 'badge-yellow';
               if (part.status === 'Requires further development') badgeClass = 'badge-red';
