@@ -850,7 +850,7 @@ function renderCoordinatorNotes() {
         ${item.generalSummary}
       </p>
       <div class="flex-column gap-6" style="margin-top: 10px;">
-        <strong>Target Sectional Observations:</strong>
+        <strong>Feedback for Section:</strong>
         ${item.observations.length === 0 ? '<span class="xs muted">None recorded.</span>' : item.observations.map(obs => {
           let statusClass = 'badge-yellow';
           if (obs.status === 'Resolved') statusClass = 'badge-green';
