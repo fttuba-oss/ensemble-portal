@@ -861,7 +861,7 @@ function createObservationRow(group = 'NUSSO', section = '', domain = 'Intonatio
   row.style.cssText = 'border: 1px solid var(--border-subtle); padding: 10px; border-radius: var(--radius-sm); background-color: rgba(255,255,255,0.01);';
   
   row.innerHTML = `
-    <div class="grid-layout grid-3 gap-10">
+    <div class="grid-layout grid-2 gap-10">
       <div class="form-field">
         <label style="font-size: 0.75rem; margin-bottom: 2px;">Ensemble</label>
         <select class="row-group input-control" required style="padding: 4px 8px; font-size: 0.8rem; height: 32px;">
@@ -872,17 +872,6 @@ function createObservationRow(group = 'NUSSO', section = '', domain = 'Intonatio
       <div class="form-field">
         <label style="font-size: 0.75rem; margin-bottom: 2px;">Section</label>
         <select class="row-section input-control" required style="padding: 4px 8px; font-size: 0.8rem; height: 32px;">
-        </select>
-      </div>
-      <div class="form-field">
-        <label style="font-size: 0.75rem; margin-bottom: 2px;">Domain</label>
-        <select class="row-domain input-control" required style="padding: 4px 8px; font-size: 0.8rem; height: 32px;">
-          <option ${domain === 'Intonation and Sound' ? 'selected' : ''}>Intonation and Sound</option>
-          <option ${domain === 'Rhythmic Accuracy' ? 'selected' : ''}>Rhythmic Accuracy</option>
-          <option ${domain === 'Articulation' ? 'selected' : ''}>Articulation</option>
-          <option ${domain === 'Ensemble Coordination' ? 'selected' : ''}>Ensemble Coordination</option>
-          <option ${domain === 'Balance and Blend' ? 'selected' : ''}>Balance and Blend</option>
-          <option ${domain === 'Interpretation and Musical Expression' ? 'selected' : ''}>Interpretation and Musical Expression</option>
         </select>
       </div>
     </div>
