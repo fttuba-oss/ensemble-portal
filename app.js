@@ -1313,7 +1313,8 @@ function prefillLoggerForm(repertoire) {
   dom.logGeneralFeedback.focus();
 }
 
-// function renderTutorLogsArchive() {
+// == Tutor Logs History Archive ==
+function renderTutorLogsArchive() {
   const u = state.activeUser;
   const plans = DB.get('lesson_plans').filter(p => p.group === u.group && p.section === u.section);
   const logs = DB.get('session_logs').filter(l => l.group === u.group && l.section === u.section);
