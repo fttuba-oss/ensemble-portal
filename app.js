@@ -630,7 +630,7 @@ function updateHeaderContent(panelId) {
     'coord-reflections': { title: 'Student Reflections Feed', eyebrow: 'Coordinator Portal · Student Feedback' },
     'tutor-hub': { title: 'Sectional Hub', eyebrow: `${u.group} · ${u.section} Workspace` },
     'tutor-planner': { title: 'Lesson Planner', eyebrow: `${u.group} · ${u.section} Workspace` },
-    'tutor-logger': { title: 'Log Rehearsal Outcome', eyebrow: `${u.group} · ${u.section} Workspace` },
+    'tutor-logger': { title: 'Log Sectional Outcome', eyebrow: `${u.group} · ${u.section} Workspace` },
     'tutor-logs': { title: 'Section Logs Archive', eyebrow: `${u.group} · ${u.section} Workspace` },
     'tutor-qa': { title: 'Conductor Q&A', eyebrow: `${u.group} · ${u.section} Workspace` },
     'coord-qa': { title: 'Tutor Questions Feed', eyebrow: 'Coordinator Portal · Q&A Discussions' },
