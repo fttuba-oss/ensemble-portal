@@ -123,6 +123,24 @@ const SEED_SESSION_LOGS = [
   }
 ];
 
+const SEED_QA_THREADS = [
+  {
+    id: 'thread-1',
+    group: 'NUSSO',
+    section: 'Horn',
+    piece: 'New Work',
+    question: 'Could the conductor clarify the tempo transition at bar 120? Is it a sudden accelerando or a gradual one?',
+    createdAt: '2026-08-27',
+    replies: [
+      {
+        author: 'Conductor',
+        content: 'It should be a gradual accelerando over 4 bars starting from bar 116. Woodwinds will lead it, horns join at bar 120.',
+        createdAt: '2026-08-28'
+      }
+    ]
+  }
+];
+
 const SEED_REPERTOIRE = [
   { id: 'rep-1', title: 'First Suite in Eb', group: 'NUSWS' },
   { id: 'rep-2', title: 'New Work', group: 'All' },
@@ -179,6 +197,7 @@ class DB {
     this.get('session_logs', SEED_SESSION_LOGS);
     this.get('repertoire', SEED_REPERTOIRE);
     this.get('student_reflections', SEED_STUDENT_REFLECTIONS);
+    this.get('qa_threads', SEED_QA_THREADS);
   }
 
   static reset() {
@@ -187,6 +206,7 @@ class DB {
     localStorage.removeItem('cfa_db_session_logs');
     localStorage.removeItem('cfa_db_repertoire');
     localStorage.removeItem('cfa_db_student_reflections');
+    localStorage.removeItem('cfa_db_qa_threads');
     this.init();
   }
 }
@@ -298,6 +318,18 @@ const dom = {
   reflectorChallenges: document.getElementById('reflectorChallenges'),
   reflectorContent: document.getElementById('reflectorContent'),
   studentReflectionsList: document.getElementById('studentReflectionsList'),
+
+  // Tutor Q&A Elements
+  tutorQaForm: document.getElementById('tutorQaForm'),
+  qaRepertoireSelect: document.getElementById('qaRepertoireSelect'),
+  qaRepertoireCustom: document.getElementById('qaRepertoireCustom'),
+  qaQuestionText: document.getElementById('qaQuestionText'),
+  tutorQaList: document.getElementById('tutorQaList'),
+
+  // Coordinator Q&A Elements
+  coordQaSearch: document.getElementById('coordQaSearch'),
+  coordQaSectionFilter: document.getElementById('coordQaSectionFilter'),
+  coordQaList: document.getElementById('coordQaList'),
 };
 
 // 5. App Core Initializer
@@ -386,6 +418,19 @@ function setupEventListeners() {
   dom.explorerSearch.addEventListener('input', renderGlobalLogsExplorer);
   dom.coordReflectionsSectionFilter.addEventListener('change', renderCoordinatorReflections);
   dom.coordReflectionsSearch.addEventListener('input', renderCoordinatorReflections);
+
+  // Q&A Event Handlers
+  if (dom.tutorQaForm) {
+    dom.tutorQaForm.addEventListener('submit', handleTutorQaSubmit);
+    dom.qaRepertoireSelect.addEventListener('change', (e) => {
+      dom.qaRepertoireCustom.style.display = e.target.value === '__custom__' ? 'block' : 'none';
+      dom.qaRepertoireCustom.required = e.target.value === '__custom__';
+    });
+  }
+  if (dom.coordQaSearch && dom.coordQaSectionFilter) {
+    dom.coordQaSearch.addEventListener('input', renderCoordinatorQaExplorer);
+    dom.coordQaSectionFilter.addEventListener('change', renderCoordinatorQaExplorer);
+  }
 }
 
 // Login verification logic
@@ -446,6 +491,10 @@ function syncIdentity() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         Logs Explorer
       </a>
+      <a class="nav-item" data-panel="coord-qa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Tutor Questions
+      </a>
     `;
 
     // Group toggle buttons in header (NUSSO / NUSWS)
@@ -492,6 +541,10 @@ function syncIdentity() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         Log Archive
       </a>
+      <a class="nav-item" data-panel="tutor-qa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Conductor Q&A
+      </a>
     `;
 
     // Hard-lock group switcher in header to simple badge text
@@ -501,6 +554,7 @@ function syncIdentity() {
     // Populate Repertoire dropdowns for the tutor
     populateRepertoireDropdown(u.group, dom.planRepertoireSelect, dom.planRepertoireCustom);
     populateRepertoireDropdown(u.group, dom.logRepertoireSelect, dom.logRepertoireCustom);
+    populateRepertoireDropdown(u.group, dom.qaRepertoireSelect, dom.qaRepertoireCustom);
 
     // Initialize dynamic containers with a clean starting row
     dom.planPartsContainer.innerHTML = '';
@@ -578,6 +632,8 @@ function updateHeaderContent(panelId) {
     'tutor-planner': { title: 'Lesson Planner', eyebrow: `${u.group} · ${u.section} Workspace` },
     'tutor-logger': { title: 'Log Rehearsal Outcome', eyebrow: `${u.group} · ${u.section} Workspace` },
     'tutor-logs': { title: 'Section Logs Archive', eyebrow: `${u.group} · ${u.section} Workspace` },
+    'tutor-qa': { title: 'Conductor Q&A', eyebrow: `${u.group} · ${u.section} Workspace` },
+    'coord-qa': { title: 'Tutor Questions Feed', eyebrow: 'Coordinator Portal · Q&A Discussions' },
     'student-hub': { title: 'Student Hub', eyebrow: `${u.group} · ${u.section} Student Portal` },
     'student-reflector': { title: 'Submit Reflection', eyebrow: `${u.group} · ${u.section} Student Portal` },
     'student-reflections': { title: 'Reflection History', eyebrow: `${u.group} · ${u.section} Student Portal` },
@@ -655,6 +711,13 @@ function renderCurrentViewportData() {
     renderTutorLoggerAssistant();
   } else if (panel === 'tutor-logs') {
     renderTutorLogsArchive();
+  } else if (panel === 'tutor-qa') {
+    renderTutorQaArchive();
+  } else if (panel === 'coord-qa') {
+    if (dom.coordQaSectionFilter.children.length <= 1) {
+      populateSectionOptions(state.activeCoordinatorGroup, dom.coordQaSectionFilter);
+    }
+    renderCoordinatorQaExplorer();
   } else if (panel === 'student-hub') {
     renderStudentHub();
   } else if (panel === 'student-reflector') {
@@ -2120,6 +2183,192 @@ window.prefillPlannerFromObservation = function(obsId) {
   dom.planStrategy.value = `Focus: Address Conductor Feedback from ${matchedObs.date}\nFeedback context: "${matchedObs.content}"\n\nSectional strategy:\n`;
   dom.planStrategy.focus();
 };
+
+
+// == Tutor Conductor Q&A handlers ==
+function handleTutorQaSubmit(e) {
+  e.preventDefault();
+  const u = state.activeUser;
+  if (!u) return;
+
+  let pieceTitle = dom.qaRepertoireSelect.value;
+  if (pieceTitle === '__custom__') {
+    pieceTitle = dom.qaRepertoireCustom.value.trim();
+  }
+  
+  if (!pieceTitle) {
+    alert('Please select or specify a repertoire.');
+    return;
+  }
+
+  const questionText = dom.qaQuestionText.value.trim();
+  if (!questionText) return;
+
+  const newItem = {
+    id: 'qa-' + Date.now(),
+    group: u.group,
+    section: u.section,
+    piece: pieceTitle,
+    question: questionText,
+    createdAt: new Date().toISOString().split('T')[0],
+    replies: []
+  };
+
+  const threads = DB.get('qa_threads');
+  threads.push(newItem);
+  DB.set('qa_threads', threads);
+
+  // Clear form
+  dom.qaRepertoireSelect.value = '';
+  dom.qaRepertoireCustom.value = '';
+  dom.qaRepertoireCustom.style.display = 'none';
+  dom.qaQuestionText.value = '';
+
+  renderTutorQaArchive();
+  alert('Question transmitted to the conductor!');
+}
+
+function renderTutorQaArchive() {
+  const u = state.activeUser;
+  if (!u) return;
+
+  const threads = DB.get('qa_threads').filter(t => t.group === u.group && t.section === u.section);
+  threads.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  if (threads.length === 0) {
+    dom.tutorQaList.innerHTML = `<p class="muted small">No questions submitted yet. Use the form above to reach the conductor.</p>`;
+    return;
+  }
+
+  dom.tutorQaList.innerHTML = threads.map(t => {
+    const statusBadge = t.replies.length > 0 ? '<span class="badge badge-green">Answered</span>' : '<span class="badge badge-yellow">Awaiting Reply</span>';
+    
+    const repliesHTML = t.replies.map(r => `
+      <div class="flex-column gap-4" style="background-color: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 8px 10px; border-radius: var(--radius-sm); margin-top: 6px; align-self: flex-end; width: 90%; border-left: 3px solid var(--accent);">
+        <div class="flex-row justify-between" style="font-size: 0.75rem;">
+          <strong class="text-cyan">${r.author}</strong>
+          <span class="muted">${r.createdAt}</span>
+        </div>
+        <p class="small mb-0" style="white-space: pre-wrap;">${r.content}</p>
+      </div>
+    `).join('');
+
+    return `
+      <div class="item-card bg-glass animate-fade-in" style="margin-top: 10px; border-left: 3px solid var(--accent);">
+        <div class="item-card-header">
+          <div>
+            ${statusBadge}
+            <span class="muted small" style="margin-left: 8px;">Repertoire: <strong>${t.piece}</strong></span>
+          </div>
+          <span class="xs muted">Asked on: ${t.createdAt}</span>
+        </div>
+        <p class="small" style="font-weight: 500; margin: 8px 0; background: rgba(0,0,0,0.05); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); white-space: pre-wrap;">Question: "${t.question}"</p>
+        
+        ${t.replies.length > 0 ? `
+          <div class="flex-column gap-6" style="margin-top: 10px; border-top: 1px dashed var(--border-subtle); padding-top: 8px;">
+            <strong style="font-size: 0.8rem;">Conductor Responses:</strong>
+            ${repliesHTML}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+
+// == Coordinator Tutor Questions handlers ==
+function renderCoordinatorQaExplorer() {
+  const group = state.activeCoordinatorGroup;
+  const sectionFilter = dom.coordQaSectionFilter.value;
+  const searchVal = dom.coordQaSearch.value.toLowerCase();
+
+  let threads = DB.get('qa_threads').filter(t => t.group === group);
+
+  if (sectionFilter !== 'all') {
+    threads = threads.filter(t => t.section === sectionFilter);
+  }
+
+  if (searchVal) {
+    threads = threads.filter(t => 
+      t.piece.toLowerCase().includes(searchVal) || 
+      t.question.toLowerCase().includes(searchVal) ||
+      t.section.toLowerCase().includes(searchVal)
+    );
+  }
+
+  threads.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  if (threads.length === 0) {
+    dom.coordQaList.innerHTML = `<p class="muted small">No questions found matching criteria.</p>`;
+    return;
+  }
+
+  dom.coordQaList.innerHTML = threads.map(t => {
+    const statusBadge = t.replies.length > 0 ? '<span class="badge badge-green">Answered</span>' : '<span class="badge badge-yellow">Awaiting Reply</span>';
+    
+    const repliesHTML = t.replies.map(r => `
+      <div class="flex-column gap-4" style="background-color: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 8px 10px; border-radius: var(--radius-sm); margin-top: 6px; border-left: 3px solid var(--accent); max-width: 90%;">
+        <div class="flex-row justify-between" style="font-size: 0.75rem;">
+          <strong class="text-cyan">${r.author}</strong>
+          <span class="muted">${r.createdAt}</span>
+        </div>
+        <p class="small mb-0" style="white-space: pre-wrap;">${r.content}</p>
+      </div>
+    `).join('');
+
+    return `
+      <article class="item-card bg-glass animate-fade-in" style="margin-top: 10px;">
+        <div class="item-card-header">
+          <div>
+            <span class="badge badge-accent">${t.section}</span>
+            ${statusBadge}
+          </div>
+          <span class="xs muted">Date: ${t.createdAt}</span>
+        </div>
+        <div class="item-card-meta">
+          Repertoire Context: <strong>${t.piece}</strong>
+        </div>
+        <p class="small" style="font-weight: 500; margin: 8px 0; background: rgba(0,0,0,0.05); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); white-space: pre-wrap;">Question: "${t.question}"</p>
+        
+        <div class="flex-column gap-6" style="margin-top: 10px; border-top: 1px dashed var(--border-subtle); padding-top: 8px;">
+          ${t.replies.length > 0 ? `
+            <strong style="font-size: 0.8rem;">Discussion History:</strong>
+            ${repliesHTML}
+          ` : ''}
+          
+          <div class="flex-column gap-6" style="margin-top: 8px;">
+            <textarea class="textarea-control reply-textarea-${t.id}" style="font-size: 0.8rem; min-height: 50px;" placeholder="Type reply as Conductor..."></textarea>
+            <button class="btn btn-xs btn-primary align-self-end" onclick="submitConductorReply('${t.id}')">Submit Reply</button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+window.submitConductorReply = function(threadId) {
+  const textarea = document.querySelector(`.reply-textarea-${threadId}`);
+  if (!textarea) return;
+  const content = textarea.value.trim();
+  if (!content) {
+    alert('Reply text cannot be empty.');
+    return;
+  }
+
+  const threads = DB.get('qa_threads');
+  const thread = threads.find(t => t.id === threadId);
+  if (thread) {
+    thread.replies.push({
+      author: 'Conductor',
+      content: content,
+      createdAt: new Date().toISOString().split('T')[0]
+    });
+    DB.set('qa_threads', threads);
+    renderCoordinatorQaExplorer();
+    alert('Reply sent successfully!');
+  }
+};
+
 
 // Kickstart on document load
 document.addEventListener('DOMContentLoaded', initApp);

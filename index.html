@@ -303,6 +303,27 @@
           </div>
         </section>
 
+        <!-- 6. Coordinator Tutor Questions Panel -->
+        <section id="coord-qa" class="panel">
+          <div class="dashboard-card bg-glass">
+            <div class="card-header-actions flex-wrap gap-12">
+              <div>
+                <h2>Tutor Questions Feed</h2>
+                <p class="muted small">Review and answer questions submitted by section tutors.</p>
+              </div>
+              <div class="filter-controls">
+                <input type="text" id="coordQaSearch" class="input-control" placeholder="Search questions..." />
+                <select id="coordQaSectionFilter" class="select-control">
+                  <option value="all">All Sections</option>
+                </select>
+              </div>
+            </div>
+            <div class="logs-feed" id="coordQaList" style="margin-top: 18px;">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+        </section>
+
         <!-- ==================== TUTOR VIEWPORTS ==================== -->
 
         <!-- 1. Tutor Sectional Overview & Hub Panel -->
@@ -438,6 +459,45 @@
             <p class="muted small mb-14">History of all session logs submitted for your instrument section. These logs are only accessible to you and coordinators.</p>
             <div class="flex-column gap-12" id="tutorLogsList">
               <!-- Dynamic content -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. Tutor Conductor Q&A Panel -->
+        <section id="tutor-qa" class="panel">
+          <div class="flex-column gap-16" style="max-width: 850px; margin: 0 auto;">
+            <!-- Form to ask question -->
+            <div class="dashboard-card bg-glass animate-fade-in">
+              <div class="card-header">
+                <h2>Ask Conductor a Question</h2>
+              </div>
+              <p class="muted small mb-12">Submit musical, technical, or logistical questions directly to the conductor. Your question and replies will only be visible to your section and the coordinators.</p>
+              
+              <form id="tutorQaForm" class="flex-column gap-14">
+                <div class="form-field">
+                  <label for="qaRepertoireSelect">Repertoire Context</label>
+                  <select id="qaRepertoireSelect" class="input-control" required></select>
+                  <input type="text" id="qaRepertoireCustom" class="input-control" placeholder="Type custom repertoire title..." style="display:none; margin-top: 8px;" />
+                </div>
+
+                <div class="form-field">
+                  <label for="qaQuestionText">Your Question / Message</label>
+                  <textarea id="qaQuestionText" class="textarea-control" placeholder="Type your question or rehearsal point here..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 6px;">Send to Conductor</button>
+              </form>
+            </div>
+
+            <!-- List of Questions -->
+            <div class="dashboard-card bg-glass animate-fade-in">
+              <div class="card-header">
+                <h2>Discussion & Conductor Replies</h2>
+              </div>
+              <p class="muted small mb-14">Active discussion threads between your section and the conductor.</p>
+              <div class="flex-column gap-12" id="tutorQaList">
+                <!-- Dynamic threads -->
+              </div>
             </div>
           </div>
         </section>
