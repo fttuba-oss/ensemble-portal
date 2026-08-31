@@ -470,7 +470,7 @@ function syncIdentity() {
   
   if (u.role === 'coordinator') {
     // Set Sidebar headers
-    dom.sidebarTitle.textContent = 'CFA Ensemble';
+    dom.sidebarTitle.textContent = 'RehearsalIQ';
     dom.sidebarSubtitle.textContent = 'Coordinator Portal';
     
     // Set up Coordinator Sidebar Navigation
@@ -520,8 +520,8 @@ function syncIdentity() {
 
   } else if (u.role === 'tutor') {
     // Tutor view Setup
-    dom.sidebarTitle.textContent = u.group;
-    dom.sidebarSubtitle.textContent = `${u.section} Sectional`;
+    dom.sidebarTitle.textContent = 'RehearsalIQ';
+    dom.sidebarSubtitle.textContent = `${u.group} · ${u.section} Tutor`;
 
     // Set up Tutor Sidebar Navigation
     dom.sidebarNav.innerHTML = `
@@ -565,8 +565,8 @@ function syncIdentity() {
     switchPanel('tutor-hub');
   } else if (u.role === 'student') {
     // Student view Setup
-    dom.sidebarTitle.textContent = u.group;
-    dom.sidebarSubtitle.textContent = `${u.section} Student`;
+    dom.sidebarTitle.textContent = 'RehearsalIQ';
+    dom.sidebarSubtitle.textContent = `${u.group} · ${u.section} Student`;
 
     // Set up Student Sidebar Navigation
     dom.sidebarNav.innerHTML = `
