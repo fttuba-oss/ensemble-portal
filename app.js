@@ -949,6 +949,9 @@ function renderCoordinatorNotes() {
 function handleExplorerFiltersChange() {
   const group = dom.explorerGroupFilter.value;
   populateSectionOptions(group === 'all' ? 'NUSSO' : group, dom.explorerSectionFilter);
+  renderGlobalLogsExplorer();
+}
+
 function renderGlobalLogsExplorer() {
   let logs = DB.get('session_logs');
   let plans = DB.get('lesson_plans');
