@@ -477,23 +477,23 @@ function syncIdentity() {
     dom.sidebarNav.innerHTML = `
       <a class="nav-item active" data-panel="coord-overview">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        Overview Dashboard
+        Overview
       </a>
       <a class="nav-item" data-panel="coord-notes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        Tutti Rehearsal Notes
+        Notes
       </a>
       <a class="nav-item" data-panel="coord-reflections">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        Student Reflections
+        Reflect
       </a>
       <a class="nav-item" data-panel="coord-explorer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        Logs Explorer
+        Logs
       </a>
       <a class="nav-item" data-panel="coord-qa">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Tutor Questions
+        Q&A
       </a>
     `;
 
@@ -527,23 +527,23 @@ function syncIdentity() {
     dom.sidebarNav.innerHTML = `
       <a class="nav-item active" data-panel="tutor-hub">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        Sectional Hub
+        Hub
       </a>
       <a class="nav-item" data-panel="tutor-planner">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        Lesson Planner
+        Planner
       </a>
       <a class="nav-item" data-panel="tutor-logger">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        Sectional Log
+        Log
       </a>
       <a class="nav-item" data-panel="tutor-logs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        Log Archive
+        Archive
       </a>
       <a class="nav-item" data-panel="tutor-qa">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Conductor Q&A
+        Q&A
       </a>
     `;
 
@@ -572,15 +572,15 @@ function syncIdentity() {
     dom.sidebarNav.innerHTML = `
       <a class="nav-item active" data-panel="student-hub">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        Student Hub
+        Hub
       </a>
       <a class="nav-item" data-panel="student-reflector">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        Submit Reflection
+        Reflect
       </a>
       <a class="nav-item" data-panel="student-reflections">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        Reflection History
+        History
       </a>
     `;
 
@@ -627,19 +627,19 @@ function switchPanel(panelId) {
 function updateHeaderContent(panelId) {
   const u = state.activeUser;
   const labels = {
-    'coord-overview': { title: `${state.activeCoordinatorGroup} Overview`, eyebrow: 'Coordinator Portal · Bird\'s Eye View' },
-    'coord-notes': { title: 'Tutti Rehearsal Notes', eyebrow: 'Coordinator Portal · Conductor Rehearsal Notes' },
-    'coord-explorer': { title: 'Tutor Logs Explorer', eyebrow: 'Coordinator Portal · Global Submissions' },
-    'coord-reflections': { title: 'Student Reflections Feed', eyebrow: 'Coordinator Portal · Student Feedback' },
-    'tutor-hub': { title: 'Sectional Hub', eyebrow: `${u.group} · ${u.section} Workspace` },
-    'tutor-planner': { title: 'Lesson Planner', eyebrow: `${u.group} · ${u.section} Workspace` },
-    'tutor-logger': { title: 'Log Sectional Outcome', eyebrow: `${u.group} · ${u.section} Workspace` },
-    'tutor-logs': { title: 'Section Logs Archive', eyebrow: `${u.group} · ${u.section} Workspace` },
-    'tutor-qa': { title: 'Conductor Q&A', eyebrow: `${u.group} · ${u.section} Workspace` },
-    'coord-qa': { title: 'Tutor Questions Feed', eyebrow: 'Coordinator Portal · Q&A Discussions' },
-    'student-hub': { title: 'Student Hub', eyebrow: `${u.group} · ${u.section} Student Portal` },
-    'student-reflector': { title: 'Submit Reflection', eyebrow: `${u.group} · ${u.section} Student Portal` },
-    'student-reflections': { title: 'Reflection History', eyebrow: `${u.group} · ${u.section} Student Portal` },
+    'coord-overview': { title: `${state.activeCoordinatorGroup} Overview`, eyebrow: 'Coordinator' },
+    'coord-notes': { title: 'Tutti Notes', eyebrow: 'Conductor' },
+    'coord-explorer': { title: 'Logs Explorer', eyebrow: 'All Sections' },
+    'coord-reflections': { title: 'Student Reflections', eyebrow: 'Feedback Feed' },
+    'coord-qa': { title: 'Tutor Questions', eyebrow: 'Discussions' },
+    'tutor-hub': { title: 'Sectional Hub', eyebrow: `${u.group} · ${u.section}` },
+    'tutor-planner': { title: 'Lesson Planner', eyebrow: `${u.group} · ${u.section}` },
+    'tutor-logger': { title: 'Sectional Log', eyebrow: `${u.group} · ${u.section}` },
+    'tutor-logs': { title: 'Log Archive', eyebrow: `${u.group} · ${u.section}` },
+    'tutor-qa': { title: 'Conductor Q&A', eyebrow: `${u.group} · ${u.section}` },
+    'student-hub': { title: 'Student Hub', eyebrow: `${u.group} · ${u.section}` },
+    'student-reflector': { title: 'Reflection', eyebrow: `${u.group} · ${u.section}` },
+    'student-reflections': { title: 'Reflection History', eyebrow: `${u.group} · ${u.section}` },
   };
 
   if (labels[panelId]) {
