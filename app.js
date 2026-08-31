@@ -613,6 +613,9 @@ function switchPanel(panelId) {
     target.classList.add('active');
   }
 
+  // Scroll to top on mobile tab navigation
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   // Update header descriptions based on view panel
   updateHeaderContent(panelId);
   
@@ -1147,13 +1150,14 @@ function createPlanPartRow(location = '', goal = '') {
   const rowId = 'plan-part-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
   const row = document.createElement('div');
   row.id = rowId;
-  row.className = 'plan-part-row flex-row gap-10 items-center';
-  row.style.cssText = 'margin-top: 6px;';
+  row.className = 'plan-part-row flex-column gap-8';
   
   row.innerHTML = `
-    <input type="text" class="row-part-location input-control" style="flex: 2; font-size: 0.85rem; height: 32px;" placeholder="e.g. Section A (bars 24-32)" value="${location}" required />
-    <input type="text" class="row-part-goal input-control" style="flex: 3; font-size: 0.85rem; height: 32px;" placeholder="e.g. Lock unison pitch stability" value="${goal}" required />
-    <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.plan-part-row').remove()" style="height: 32px; flex: 0.5;">Delete</button>
+    <div class="flex-row gap-8 items-center">
+      <input type="text" class="row-part-location input-control" style="flex: 1; font-weight: 600;" placeholder="Section (e.g. Section A / bars 24-32)" value="${location}" required />
+      <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.plan-part-row').remove()">Delete</button>
+    </div>
+    <input type="text" class="row-part-goal input-control" placeholder="Target goal (e.g. Lock unison pitch stability)" value="${goal}" required />
   `;
   dom.planPartsContainer.appendChild(row);
 }
@@ -1163,20 +1167,19 @@ function createLogPartRow(location = '', status = 'Progressing', notes = '') {
   const rowId = 'log-part-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
   const row = document.createElement('div');
   row.id = rowId;
-  row.className = 'log-part-row flex-column gap-6';
-  row.style.cssText = 'border: 1px solid var(--border-subtle); padding: 8px; border-radius: var(--radius-sm); background-color: rgba(255,255,255,0.01); margin-top: 6px;';
+  row.className = 'log-part-row flex-column gap-8';
   
   row.innerHTML = `
-    <div class="flex-row gap-10 items-center">
-      <input type="text" class="row-log-location input-control" style="flex: 3; font-size: 0.85rem; height: 32px;" placeholder="Section (e.g. Section A / bars 24-32)" value="${location}" required />
-      <select class="row-log-status input-control" style="flex: 2; font-size: 0.85rem; height: 32px;" required>
-        <option value="Requires further development" ${status === 'Requires further development' ? 'selected' : ''}>Requires further development</option>
-        <option value="Progressing" ${status === 'Progressing' ? 'selected' : ''}>Progressing</option>
-        <option value="Demonstrated" ${status === 'Demonstrated' ? 'selected' : ''}>Demonstrated</option>
-      </select>
-      <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.log-part-row').remove()" style="height: 32px;">Delete</button>
+    <div class="flex-row gap-8 items-center">
+      <input type="text" class="row-log-location input-control" style="flex: 1; font-weight: 600;" placeholder="Section (e.g. Section A / bars 24-32)" value="${location}" required />
+      <button type="button" class="btn btn-xs btn-outline text-red" onclick="this.closest('.log-part-row').remove()">Delete</button>
     </div>
-    <input type="text" class="row-log-notes input-control" style="font-size: 0.85rem; height: 32px;" placeholder="Outcome notes for this section..." value="${notes}" required />
+    <select class="row-log-status input-control" required>
+      <option value="Requires further development" ${status === 'Requires further development' ? 'selected' : ''}>Requires further development</option>
+      <option value="Progressing" ${status === 'Progressing' ? 'selected' : ''}>Progressing</option>
+      <option value="Demonstrated" ${status === 'Demonstrated' ? 'selected' : ''}>Demonstrated</option>
+    </select>
+    <input type="text" class="row-log-notes input-control" placeholder="Outcome notes for this section..." value="${notes}" required />
   `;
   dom.logPartsContainer.appendChild(row);
 }
