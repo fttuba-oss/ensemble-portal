@@ -665,6 +665,40 @@ input, select, textarea {
   border-color: var(--accent-primary);
 }
 
+/* Segmented Subtab Switcher */
+.segmented-control {
+  display: flex;
+  background: #e2e8f0;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  gap: 3px;
+  width: 100%;
+}
+
+.segment-btn {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: center;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.segment-btn.active {
+  background: #ffffff;
+  color: var(--text-main);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.overview-subtab {
+  width: 100%;
+}
+
 /* Rehearsal Alert Banner */
 .rehearsal-alert {
   background: #fef2f2;

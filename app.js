@@ -249,13 +249,10 @@ const dom = {
   metricDemonstrated: document.getElementById('metricDemonstrated'),
   metricTotalLogs: document.getElementById('metricTotalLogs'),
   synthesisContent: document.getElementById('synthesisContent'),
-  moreSynthesis: document.getElementById('moreSynthesis'),
-  toggleSynthesis: document.getElementById('toggleSynthesis'),
-  overviewSectionFilter: document.getElementById('overviewSectionFilter'),
-  prioritiesTable: document.getElementById('prioritiesTable'),
-  dbQueryInput: document.getElementById('dbQueryInput'),
-  searchDbBtn: document.getElementById('searchDbBtn'),
-  queryResponsePanel: document.getElementById('queryResponsePanel'),
+  overviewTabControl: document.getElementById('overviewTabControl'),
+  overviewSectionMatrix: document.getElementById('overviewSectionMatrix'),
+  matrixCountBadge: document.getElementById('matrixCountBadge'),
+  overviewAttentionList: document.getElementById('overviewAttentionList'),
   
   // Coordinator Rehearsal Notes Elements
   tuttiNotesForm: document.getElementById('tuttiNotesForm'),
@@ -390,15 +387,20 @@ function setupEventListeners() {
     showLoginInterface();
   });
 
-  // AI Synthesis text expander toggle
-  dom.toggleSynthesis.addEventListener('click', () => {
-    const hidden = dom.moreSynthesis.hidden;
-    dom.moreSynthesis.hidden = !hidden;
-    dom.toggleSynthesis.textContent = hidden ? 'Hide detailed synthesis' : 'Read full detailed synthesis';
-  });
-
-  // Database query search trigger
-  dom.searchDbBtn.addEventListener('click', handleDatabaseQuery);
+  // Coordinator Overview Segmented Subtabs
+  if (dom.overviewTabControl) {
+    const subtabButtons = dom.overviewTabControl.querySelectorAll('.segment-btn');
+    subtabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        subtabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const targetId = btn.dataset.subtab;
+        document.querySelectorAll('.overview-subtab').forEach(tab => {
+          tab.style.display = tab.id === targetId ? 'block' : 'none';
+        });
+      });
+    });
+  }
 
   // Form Submissions
   dom.tuttiNotesForm.addEventListener('submit', handleTuttiNotesSubmit);
@@ -412,7 +414,6 @@ function setupEventListeners() {
   dom.studentReflectionForm.addEventListener('submit', handleStudentReflectionSubmit);
 
   // Filter Event Handlers
-  dom.overviewSectionFilter.addEventListener('change', renderOverviewPriorities);
   dom.explorerGroupFilter.addEventListener('change', handleExplorerFiltersChange);
   dom.explorerSectionFilter.addEventListener('change', renderGlobalLogsExplorer);
   dom.explorerSearch.addEventListener('input', renderGlobalLogsExplorer);

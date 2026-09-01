@@ -105,8 +105,10 @@
 
         <!-- ==================== COORDINATOR VIEWPORTS ==================== -->
 
-        <!-- 1. Coordinator Overview Panel -->
+        <!-- 1. Coordinator Overview Panel (Tabbed Minimalist Dashboard) -->
         <section id="coord-overview" class="panel">
+          
+          <!-- Top Metrics Bar -->
           <div class="metrics-grid">
             <div class="metric-card bg-glass">
               <div class="metric-icon val-red">
@@ -146,61 +148,55 @@
             </div>
           </div>
 
-          <div class="grid-layout grid-2-1">
-            <!-- Left: Curated Synthesis & Performance Tracker -->
-            <div class="flex-column gap-16">
-              <article class="dashboard-card bg-glass animate-fade-in">
-                <div class="card-header">
-                  <div class="flex-row items-center gap-10">
-                    <span class="pulse-dot"></span>
-                    <h2>Curated Rehearsal & Learning Synthesis</h2>
-                  </div>
-                  <span class="badge badge-accent">This Week's Snapshot</span>
-                </div>
-                <p class="synthesis-text" id="synthesisContent">
-                  Select a group from the header to view specific curriculum intelligence updates...
-                </p>
-                <div id="moreSynthesis" class="synthesis-details" hidden>
-                  <p>In-depth structural breakdown of rehearsal progress shows high focus on woodwind pitch sync. Brass sectionals require higher alignment on volume dynamics in tutti transitions.</p>
-                </div>
-                <div class="card-footer">
-                  <button id="toggleSynthesis" class="btn btn-outline">Read full detailed synthesis</button>
-                </div>
-              </article>
+          <!-- Segmented Tab Switcher for Bird's-Eye Focus -->
+          <div class="segmented-control" id="overviewTabControl" style="margin-bottom: 12px;">
+            <button type="button" class="segment-btn active" data-subtab="subtab-matrix">Section Health</button>
+            <button type="button" class="segment-btn" data-subtab="subtab-attention">Attention Flags</button>
+            <button type="button" class="segment-btn" data-subtab="subtab-briefing">Tutti Briefing</button>
+          </div>
 
-              <!-- Curated Priorities Area -->
-              <section class="dashboard-card bg-glass">
-                <div class="card-header-actions">
-                  <h2>Active Section Priorities</h2>
-                  <div class="filter-controls">
-                    <select id="overviewSectionFilter" class="select-control"><option value="all">All Sections</option></select>
-                  </div>
-                </div>
-                
-                <div class="table-container" style="margin-top: 14px;">
-                  <div class="priorities-table" id="prioritiesTable">
-                    <!-- Loaded dynamically via JS -->
-                  </div>
-                </div>
-              </section>
-            </div>
-
-            <!-- Right: Database Search -->
-            <div class="flex-column gap-16">
-              
-              <article class="dashboard-card bg-glass">
-                <div class="card-header">
-                  <h2>Rehearsal Database Search & Analysis</h2>
-                </div>
-                <p class="muted small mb-12">Search or query sectional milestones, concerns, or historical progression trends.</p>
-                <div class="flex-column gap-10">
-                  <input type="text" id="dbQueryInput" class="input-control" placeholder="E.g., Which sections are struggling with intonation?" />
-                  <button id="searchDbBtn" class="btn btn-primary">Run Database Query</button>
-                </div>
-                <div id="queryResponsePanel" class="ai-box" hidden></div>
-              </article>
+          <!-- Subtab 1: Section Health Matrix -->
+          <div id="subtab-matrix" class="overview-subtab active">
+            <div class="dashboard-card bg-glass">
+              <div class="card-header flex-row justify-between items-center mb-8">
+                <h2>Instrument Section Health</h2>
+                <span class="xs muted" id="matrixCountBadge">All Sections</span>
+              </div>
+              <div class="grid-layout grid-2 gap-8" id="overviewSectionMatrix">
+                <!-- Populated dynamically via JS -->
+              </div>
             </div>
           </div>
+
+          <!-- Subtab 2: Attention Flags -->
+          <div id="subtab-attention" class="overview-subtab" style="display: none;">
+            <div class="dashboard-card bg-glass">
+              <div class="card-header mb-8">
+                <h2>Priority Attention Targets</h2>
+                <p class="muted small">Sections flagged by conductor or requiring developmental support.</p>
+              </div>
+              <div class="flex-column gap-8" id="overviewAttentionList">
+                <!-- Populated dynamically via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Subtab 3: Tutti Briefing / Synthesis -->
+          <div id="subtab-briefing" class="overview-subtab" style="display: none;">
+            <article class="dashboard-card bg-glass animate-fade-in">
+              <div class="card-header flex-row justify-between items-center mb-8">
+                <div class="flex-row items-center gap-8">
+                  <span class="pulse-dot"></span>
+                  <h2>Weekly Rehearsal Briefing</h2>
+                </div>
+                <span class="badge badge-accent">Snapshot</span>
+              </div>
+              <p class="synthesis-text small" id="synthesisContent" style="line-height: 1.6;">
+                Loading briefing snapshot...
+              </p>
+            </article>
+          </div>
+
         </section>
 
         <!-- 2. Conductor Tutti Rehearsal Notes Panel -->
