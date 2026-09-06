@@ -115,6 +115,8 @@
           bottom: 74px;
           left: 12px;
           right: 12px;
+          max-width: calc(100% - 24px);
+          box-sizing: border-box;
           border-radius: 12px;
           justify-content: space-between;
           padding: 8px 12px;
@@ -134,7 +136,9 @@
 
       .live-edit-drawer {
         width: 100%;
-        max-width: 440px;
+        max-width: min(440px, 100vw);
+        box-sizing: border-box;
+        overflow-x: hidden;
         height: 100%;
         background: #0f172a;
         color: #f8fafc;
