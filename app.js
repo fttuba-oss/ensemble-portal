@@ -513,7 +513,9 @@ function setupEventListeners() {
 
   // Form Submissions
   dom.tuttiNotesForm.addEventListener('submit', handleTuttiNotesSubmit);
-  dom.addObservationRowBtn.addEventListener('click', () => createObservationRow());
+  if (dom.addObservationRowBtn) {
+    dom.addObservationRowBtn.addEventListener('click', () => createObservationRow());
+  }
 
   dom.lessonPlanForm.addEventListener('submit', handleLessonPlanSubmit);
   dom.addPlanPartBtn.addEventListener('click', () => createPlanPartRow());
@@ -629,7 +631,7 @@ function syncIdentity() {
   if (u.role === 'coordinator') {
     // Set Sidebar headers
     dom.sidebarTitle.textContent = 'RehearsalIQ';
-    dom.sidebarSubtitle.textContent = 'Coordinator Portal';
+    dom.sidebarSubtitle.textContent = 'Conductor Portal';
     
     // Set up Coordinator Sidebar Navigation
     dom.sidebarNav.innerHTML = `
@@ -639,7 +641,7 @@ function syncIdentity() {
       </a>
       <a class="nav-item" data-panel="coord-notes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        Notes
+        Rehearsal Notes
       </a>
       <a class="nav-item" data-panel="coord-reflections">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -669,9 +671,11 @@ function syncIdentity() {
     // Populate Repertoire dropdowns for the coordinator
     populateRepertoireDropdown(state.activeCoordinatorGroup, dom.notesRepertoireSelect, dom.notesRepertoireCustom);
     
-    // Add initial clean observation row
-    dom.notesObservationsContainer.innerHTML = '';
-    createObservationRow();
+    // Clean observation row if container exists
+    if (dom.notesObservationsContainer) {
+      dom.notesObservationsContainer.innerHTML = '';
+      createObservationRow();
+    }
     
     // Set active panel to default coordinator overview
     switchPanel('coord-overview');
@@ -785,11 +789,11 @@ function switchPanel(panelId) {
 function updateHeaderContent(panelId) {
   const u = state.activeUser;
   const labels = {
-    'coord-overview': { title: `${state.activeCoordinatorGroup} Overview`, eyebrow: 'Coordinator' },
-    'coord-notes': { title: 'Tutti Notes', eyebrow: 'Conductor' },
-    'coord-explorer': { title: 'Logs Database', eyebrow: 'All Sections' },
-    'coord-reflections': { title: 'Student Reflections', eyebrow: 'Feedback Feed' },
-    'coord-qa': { title: 'Tutor Questions', eyebrow: 'Discussions' },
+    'coord-overview': { title: `${state.activeCoordinatorGroup} Overview`, eyebrow: 'CONDUCTOR' },
+    'coord-notes': { title: 'Rehearsal Notes', eyebrow: 'CONDUCTOR' },
+    'coord-explorer': { title: 'Logs Database', eyebrow: 'CONDUCTOR' },
+    'coord-reflections': { title: 'Student Reflections', eyebrow: 'CONDUCTOR' },
+    'coord-qa': { title: 'Tutor Questions', eyebrow: 'CONDUCTOR' },
     'tutor-hub': { title: 'Sectional Hub', eyebrow: `${u.group} · ${u.section}` },
     'tutor-planner': { title: 'Lesson Planner', eyebrow: `${u.group} · ${u.section}` },
     'tutor-logger': { title: 'Sectional Log', eyebrow: `${u.group} · ${u.section}` },
@@ -1348,27 +1352,29 @@ function renderCoordinatorNotes() {
 
         <!-- Tap-to-Expand Details -->
         <div class="section-health-details" id="${logDetailsId}" style="display: none; padding: 12px 14px; border-top: 1px solid var(--border-subtle);" onclick="event.stopPropagation()">
-          <div class="small" style="background-color: rgba(255,255,255,0.02); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-bottom: 10px; line-height: 1.5;">
-            <strong style="color: var(--text-main);">General Rehearsal Overview:</strong><br>
+          <div class="small" style="background-color: rgba(255,255,255,0.02); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-bottom: 8px; line-height: 1.5;">
+            <strong style="color: var(--text-main);">Rehearsal Summary:</strong><br>
             ${escapeHtml(item.generalSummary)}
           </div>
-          <div class="flex-column gap-6">
-            <strong class="xs" style="color: var(--text-muted);">Specific notes for section:</strong>
-            ${(!item.observations || item.observations.length === 0) ? '<span class="xs muted">None recorded.</span>' : item.observations.map(obs => {
-              let statusClass = 'badge-yellow';
-              if (obs.status === 'Resolved') statusClass = 'badge-green';
-              if (obs.status === 'Requires attention') statusClass = 'badge-red';
-              return `
-                <div class="table-row justify-between" style="padding: 6px 10px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem;">
-                  <div style="flex: 1; padding-right: 12px;">
-                    <strong class="text-cyan">[${obs.group} ${obs.section}]</strong><br>
-                    <span class="muted">${escapeHtml(obs.content)}</span>
+          ${(item.observations && item.observations.length > 0) ? `
+            <div class="flex-column gap-6">
+              <strong class="xs" style="color: var(--text-muted);">Specific notes for section:</strong>
+              ${item.observations.map(obs => {
+                let statusClass = 'badge-yellow';
+                if (obs.status === 'Resolved') statusClass = 'badge-green';
+                if (obs.status === 'Requires attention') statusClass = 'badge-red';
+                return `
+                  <div class="table-row justify-between" style="padding: 6px 10px; background-color: rgba(0,0,0,0.02); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.8rem;">
+                    <div style="flex: 1; padding-right: 12px;">
+                      <strong class="text-cyan">[${obs.group} ${obs.section}]</strong><br>
+                      <span class="muted">${escapeHtml(obs.content)}</span>
+                    </div>
+                    <span class="badge ${statusClass}" style="align-self: center;">${obs.status}</span>
                   </div>
-                  <span class="badge ${statusClass}" style="align-self: center;">${obs.status}</span>
-                </div>
-              `;
-            }).join('')}
-          </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
         </div>
       </article>
     `;
@@ -1835,21 +1841,23 @@ function handleTuttiNotesSubmit(e) {
   }
 
   const observations = [];
-  const rows = dom.notesObservationsContainer.querySelectorAll('.observation-row');
-  rows.forEach(row => {
-    const g = row.querySelector('.row-group').value;
-    const s = row.querySelector('.row-section').value;
-    const c = row.querySelector('.row-content').value.trim();
-    if (c) {
-      observations.push({
-        id: 'obs-' + Date.now() + Math.random().toString(36).substr(2, 5),
-        group: g,
-        section: s,
-        content: c,
-        status: 'Requires attention'
-      });
-    }
-  });
+  if (dom.notesObservationsContainer) {
+    const rows = dom.notesObservationsContainer.querySelectorAll('.observation-row');
+    rows.forEach(row => {
+      const g = row.querySelector('.row-group').value;
+      const s = row.querySelector('.row-section').value;
+      const c = row.querySelector('.row-content').value.trim();
+      if (c) {
+        observations.push({
+          id: 'obs-' + Date.now() + Math.random().toString(36).substr(2, 5),
+          group: g,
+          section: s,
+          content: c,
+          status: 'Requires attention'
+        });
+      }
+    });
+  }
 
   const newItem = {
     id: 'tutti-' + Date.now(),
@@ -1866,8 +1874,10 @@ function handleTuttiNotesSubmit(e) {
   // Clear Form
   dom.notesDate.value = '';
   dom.notesGeneralSummary.value = '';
-  dom.notesObservationsContainer.innerHTML = '';
-  createObservationRow(); // Add one clean row
+  if (dom.notesObservationsContainer) {
+    dom.notesObservationsContainer.innerHTML = '';
+    createObservationRow(); // Add one clean row
+  }
 
   populateRepertoireDropdown(state.activeCoordinatorGroup, dom.notesRepertoireSelect, dom.notesRepertoireCustom);
   renderCoordinatorNotes();

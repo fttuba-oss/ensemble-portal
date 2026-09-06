@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=7" />
+  <link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
 
@@ -175,9 +175,9 @@
             <!-- Left Form: Create / Upload Rehearsal Notes -->
             <div class="dashboard-card bg-glass">
               <div class="card-header">
-                <h2>Record Tutti Rehearsal Notes</h2>
+                <h2>Tutti Rehearsal Notes</h2>
               </div>
-              <p class="muted small mb-12">Upload conductor rehearsal notes via Word Doc, PDF, or enter directly. All uploaded notes automatically ground the Rehearsal AI Assistant.</p>
+              <p class="muted small mb-12">Upload conductor rehearsal notes via Word Doc, PDF, or enter directly.</p>
               
               <form id="tuttiNotesForm" class="flex-column gap-14">
                 <!-- Word Doc / PDF Upload Zone -->
@@ -204,20 +204,7 @@
                 </div>
 
                 <div class="form-field">
-                  <label for="notesGeneralSummary">Conductor's Rehearsal Overview</label>
-                  <textarea id="notesGeneralSummary" class="textarea-control" placeholder="Overall rehearsal summary, tempo targets, tutti balance, or key directives..." required></textarea>
-                </div>
-
-                <div class="divider" style="margin: 10px 0; border-top: 1px dashed var(--border-subtle);"></div>
-                
-                <div class="flex-row justify-between items-center">
-                  <h3 style="font-size: 1rem; font-weight: 600;">Specific notes for section</h3>
-                  <button type="button" id="addObservationRowBtn" class="btn btn-xs btn-outline">+ Add Section</button>
-                </div>
-                <p class="muted small">Targeted notes for individual sections. Tutors will see these and focus their upcoming sectional lessons accordingly.</p>
-
-                <div id="notesObservationsContainer" class="flex-column gap-12" style="margin-top: 8px;">
-                  <!-- Dynamic section observation rows inserted here -->
+                  <textarea id="notesGeneralSummary" class="textarea-control" placeholder="Rehearsal summary, tempo targets, tutti balance, or key directives..." style="min-height: 120px;" required></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="margin-top: 12px;">Publish Rehearsal Notes</button>
@@ -654,7 +641,7 @@
 
   </div>
 
-  <script src="app.js?v=7"></script>
-  <script src="edit-mode.js?v=7"></script>
+  <script src="app.js?v=8"></script>
+  <script src="edit-mode.js?v=8"></script>
 </body>
 </html>
