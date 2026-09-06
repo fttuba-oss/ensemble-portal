@@ -115,12 +115,25 @@ input, select, textarea {
 .justify-between { justify-content: space-between; }
 .align-self-end { align-self: flex-end; }
 
+/* Responsive Overflow Containment Utilities */
+.min-w-0 { min-width: 0 !important; }
+.w-full { width: 100% !important; }
+.flex-shrink-0 { flex-shrink: 0 !important; }
+.flex-shrink-1 { flex-shrink: 1 !important; }
+.overflow-hidden { overflow: hidden !important; }
+.text-truncate {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-width: 0;
+}
+
 /* Grid systems */
-.grid-layout { display: grid; gap: 12px; }
-.grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
-.grid-3 { display: grid; grid-template-columns: 1fr; gap: 12px; }
-.grid-1-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.grid-2-1 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.grid-layout { display: grid; gap: 12px; width: 100%; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; width: 100%; }
+.grid-3 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; width: 100%; }
+.grid-1-2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; width: 100%; }
+.grid-2-1 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; width: 100%; }
 
 /* Animations */
 @keyframes fadeIn {
@@ -325,8 +338,11 @@ input, select, textarea {
 /* Main Content Area */
 .app-content {
   flex: 1;
-  padding: 12px 12px 78px 12px;
+  padding: 12px 12px max(96px, calc(72px + env(safe-area-inset-bottom))) 12px;
+  width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .content-banner {
@@ -334,6 +350,9 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .content-banner .eyebrow {
@@ -356,16 +375,21 @@ input, select, textarea {
   color: var(--text-main);
   line-height: 1.25;
   word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Panels */
 .viewport-panels {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .panel {
   display: none;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .panel.active {
@@ -375,12 +399,17 @@ input, select, textarea {
 /* ==========================================================================
    3. Mobile Cards, Tables & Components
    ========================================================================== */
-.dashboard-card, .metric-card, .item-card {
+.dashboard-card, .metric-card, .item-card, .section-health-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 14px 12px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .dashboard-card {
@@ -389,6 +418,7 @@ input, select, textarea {
 
 .card-header {
   margin-bottom: 8px;
+  width: 100%;
 }
 
 .card-header h2 {
@@ -403,14 +433,24 @@ input, select, textarea {
   flex-direction: column;
   gap: 8px;
   margin-bottom: 12px;
+  width: 100%;
 }
 
 /* Metrics Grid on Mobile */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 350px) {
+  .metrics-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .metric-card {
@@ -419,6 +459,8 @@ input, select, textarea {
   align-items: center;
   gap: 8px;
   padding: 10px 10px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .metric-body {
@@ -558,6 +600,12 @@ input, select, textarea {
 .section-health-summary {
   cursor: pointer;
   user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .section-health-details {
@@ -566,6 +614,10 @@ input, select, textarea {
   border-top: 1px dashed var(--border-subtle);
   font-size: 0.83rem;
   line-height: 1.45;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .section-toggle-btn {

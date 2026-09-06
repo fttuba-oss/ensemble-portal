@@ -1084,15 +1084,17 @@ function renderMetricsDrawer() {
         else if (item.status === 'Progressing') itemBadge = 'badge-yellow';
         else if (item.status === 'Demonstrated') itemBadge = 'badge-green';
 
+        const drawerStatusShort = (item.status === 'Requires further development') ? 'Requires Work' : item.status;
+
         html += `
           <div class="section-health-card" style="margin-bottom: 4px;">
             <div class="flex-row justify-between items-center section-health-summary" onclick="toggleDrawerSectionDetails('${secId}')">
-              <div class="flex-row items-center gap-8 min-w-0">
-                <strong style="font-size: 0.9rem; color: var(--text-main);">${item.section}</strong>
-                <span class="xs muted text-truncate">${item.latestLog ? `(${item.latestLog.piece})` : '(No logs)'}</span>
+              <div class="flex-row items-center gap-6 min-w-0" style="flex: 1 1 auto; min-width: 0; overflow: hidden;">
+                <strong class="text-truncate" style="font-size: 0.9rem; color: var(--text-main);">${item.section}</strong>
+                <span class="xs muted text-truncate" style="flex: 1 1 auto; min-width: 0;">${item.latestLog ? `(${item.latestLog.piece})` : '(No logs)'}</span>
               </div>
               <div class="flex-row items-center gap-6 flex-shrink-0">
-                <span class="badge ${itemBadge}">${item.status}</span>
+                <span class="badge ${itemBadge}">${drawerStatusShort}</span>
                 <span class="section-toggle-btn" id="drawerSecToggle-${secId}">▾</span>
               </div>
             </div>
@@ -1178,16 +1180,18 @@ function renderOverviewSectionMatrix() {
     else if (status === 'Progressing') badgeClass = 'badge-yellow';
     else if (status === 'Demonstrated') badgeClass = 'badge-green';
 
+    const statusShort = (status === 'Requires further development') ? 'Requires Work' : status;
+
     return `
       <div class="section-health-card bg-glass">
         <!-- Compact Summary Row (Uncluttered Mobile View) -->
         <div class="flex-row justify-between items-center section-health-summary" onclick="toggleSectionLogDetails('${secId}')">
-          <div class="flex-row items-center gap-6 min-w-0">
-            <span class="family-pill ${info.code}" style="font-size: 0.62rem; padding: 1px 6px;">${info.code.toUpperCase()}</span>
-            <strong style="font-size: 0.92rem; color: var(--text-main);">${sec}</strong>
+          <div class="flex-row items-center gap-6 min-w-0" style="flex: 1 1 auto; min-width: 0; overflow: hidden;">
+            <span class="family-pill ${info.code} flex-shrink-0" style="font-size: 0.62rem; padding: 1px 6px;">${info.code.toUpperCase()}</span>
+            <strong class="text-truncate" style="font-size: 0.92rem; color: var(--text-main);">${sec}</strong>
           </div>
           <div class="flex-row items-center gap-6 flex-shrink-0">
-            <span class="badge ${badgeClass}">${status}</span>
+            <span class="badge ${badgeClass}">${statusShort}</span>
             <button type="button" class="section-toggle-btn" id="btnToggle-${secId}" aria-label="Toggle log details">
               <span>▾</span>
             </button>
@@ -1195,9 +1199,9 @@ function renderOverviewSectionMatrix() {
         </div>
 
         <!-- Clean One-line Status Info -->
-        <div class="flex-row justify-between items-center xs muted" style="margin-top: 4px; cursor: pointer;" onclick="toggleSectionLogDetails('${secId}')">
-          <span class="text-truncate">${latestLog ? `Rehearsed: <em>${latestLog.piece}</em>` : 'No logs submitted yet'}</span>
-          ${latestLog ? `<span>${latestLog.createdAt}</span>` : ''}
+        <div class="flex-row justify-between items-center xs muted gap-6" style="margin-top: 4px; cursor: pointer; min-width: 0; overflow: hidden;" onclick="toggleSectionLogDetails('${secId}')">
+          <span class="text-truncate" style="flex: 1 1 auto; min-width: 0;">${latestLog ? `Rehearsed: <em>${escapeHtml(latestLog.piece)}</em>` : 'No logs submitted yet'}</span>
+          ${latestLog ? `<span class="flex-shrink-0">${latestLog.createdAt}</span>` : ''}
         </div>
 
         ${flaggedInTutti ? `
@@ -1324,19 +1328,22 @@ function renderOverviewAttentionTargets() {
     return;
   }
 
-  dom.overviewAttentionList.innerHTML = attentionItems.map(item => `
-    <div class="item-card bg-glass" style="padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--status-red); margin-bottom: 8px;">
-      <div class="flex-row justify-between items-center mb-4">
-        <div class="flex-row items-center gap-8">
-          <strong style="font-size: 0.95rem; color: var(--text-main);">${item.section}</strong>
-          <span class="xs muted">[${item.type}]</span>
+  dom.overviewAttentionList.innerHTML = attentionItems.map(item => {
+    const itemStatusShort = (item.status === 'Requires further development') ? 'Requires Work' : item.status;
+    return `
+      <div class="item-card bg-glass" style="padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--status-red); margin-bottom: 8px;">
+        <div class="flex-row justify-between items-center mb-4 flex-wrap gap-6">
+          <div class="flex-row items-center gap-6 min-w-0" style="flex: 1 1 auto; min-width: 0;">
+            <strong class="text-truncate" style="font-size: 0.95rem; color: var(--text-main);">${escapeHtml(item.section)}</strong>
+            <span class="xs muted flex-shrink-0">[${escapeHtml(item.type)}]</span>
+          </div>
+          <span class="badge ${item.badgeClass} flex-shrink-0">${itemStatusShort}</span>
         </div>
-        <span class="badge ${item.badgeClass}">${item.status}</span>
+        <div class="xs muted" style="margin-bottom: 6px; word-break: break-word;">${escapeHtml(item.title)}</div>
+        <div class="small" style="line-height: 1.45; color: var(--text-main); word-break: break-word;">${escapeHtml(item.content)}</div>
       </div>
-      <div class="xs muted" style="margin-bottom: 6px;">${item.title}</div>
-      <div class="small" style="line-height: 1.45; color: var(--text-main);">${item.content}</div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 
