@@ -108,43 +108,57 @@
         <!-- 1. Coordinator Overview Panel (Tabbed Minimalist Dashboard) -->
         <section id="coord-overview" class="panel">
           
-          <!-- Top Metrics Bar -->
+          <!-- Top Metrics Bar (Clickable/Expandable) -->
           <div class="metrics-grid">
-            <div class="metric-card bg-glass">
+            <div class="metric-card bg-glass metric-card-interactive" id="metricCardRequires" data-metric="requires" onclick="toggleMetricDrawer('requires')" role="button" tabindex="0" title="Click to view sections requiring work">
               <div class="metric-icon val-red">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
               </div>
               <div class="metric-body">
-                <div class="label">Requires Work</div>
+                <div class="label">Requires Work <span class="metric-expand-indicator">▾</span></div>
                 <div class="value text-red" id="metricRequires">0</div>
               </div>
             </div>
-            <div class="metric-card bg-glass">
+            <div class="metric-card bg-glass metric-card-interactive" id="metricCardProgressing" data-metric="progressing" onclick="toggleMetricDrawer('progressing')" role="button" tabindex="0" title="Click to view progressing sections">
               <div class="metric-icon val-yellow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
               </div>
               <div class="metric-body">
-                <div class="label">Progressing</div>
+                <div class="label">Progressing <span class="metric-expand-indicator">▾</span></div>
                 <div class="value text-yellow" id="metricProgressing">0</div>
               </div>
             </div>
-            <div class="metric-card bg-glass">
+            <div class="metric-card bg-glass metric-card-interactive" id="metricCardDemonstrated" data-metric="demonstrated" onclick="toggleMetricDrawer('demonstrated')" role="button" tabindex="0" title="Click to view demonstrated sections">
               <div class="metric-icon val-green">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
               </div>
               <div class="metric-body">
-                <div class="label">Demonstrated</div>
+                <div class="label">Demonstrated <span class="metric-expand-indicator">▾</span></div>
                 <div class="value text-green" id="metricDemonstrated">0</div>
               </div>
             </div>
-            <div class="metric-card bg-glass">
+            <div class="metric-card bg-glass metric-card-interactive" id="metricCardTotal" data-metric="total" onclick="toggleMetricDrawer('total')" role="button" tabindex="0" title="Click to view all sections">
               <div class="metric-icon val-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
               </div>
               <div class="metric-body">
-                <div class="label">Total Logs</div>
+                <div class="label">Total Logs <span class="metric-expand-indicator">▾</span></div>
                 <div class="value text-blue" id="metricTotalLogs">0</div>
               </div>
+            </div>
+          </div>
+
+          <!-- Expandable Metrics Drawer (Woodwinds -> Brass -> Percussion -> Strings) -->
+          <div id="metricsExpandedDrawer" class="metrics-expanded-drawer bg-glass" style="display: none; margin-bottom: 14px;">
+            <div class="metrics-drawer-header flex-row justify-between items-center">
+              <div class="flex-row items-center gap-8">
+                <span class="badge" id="metricsDrawerBadge">Requires Work</span>
+                <span class="xs muted" id="metricsDrawerCount">0 sections</span>
+              </div>
+              <button type="button" id="metricsDrawerCloseBtn" class="btn btn-xs btn-outline">Close ✕</button>
+            </div>
+            <div class="metrics-drawer-body" id="metricsDrawerBody">
+              <!-- Dynamically rendered sorted by Woodwinds -> Brass -> Percussion -> Strings -->
             </div>
           </div>
 
@@ -152,7 +166,6 @@
           <div class="segmented-control" id="overviewTabControl" style="margin-bottom: 12px;">
             <button type="button" class="segment-btn active" data-subtab="subtab-matrix">Section Health</button>
             <button type="button" class="segment-btn" data-subtab="subtab-attention">Attention Flags</button>
-            <button type="button" class="segment-btn" data-subtab="subtab-briefing">Tutti Briefing</button>
           </div>
 
           <!-- Subtab 1: Section Health Matrix -->
@@ -181,20 +194,18 @@
             </div>
           </div>
 
-          <!-- Subtab 3: Tutti Briefing / Synthesis -->
-          <div id="subtab-briefing" class="overview-subtab" style="display: none;">
-            <article class="dashboard-card bg-glass animate-fade-in">
-              <div class="card-header flex-row justify-between items-center mb-8">
-                <div class="flex-row items-center gap-8">
-                  <span class="pulse-dot"></span>
-                  <h2>Weekly Rehearsal Briefing</h2>
-                </div>
-                <span class="badge badge-accent">Snapshot</span>
+          <!-- AI Rehearsal Analysis & Summary Banner -->
+          <div class="dashboard-card bg-glass flex-row justify-between items-center flex-wrap gap-12" style="margin-top: 14px; padding: 14px 18px; border: 1px solid rgba(56, 189, 248, 0.25); background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.7) 100%);">
+            <div class="flex-row items-center gap-12">
+              <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: #38bdf8; flex-shrink: 0; font-size: 1.2rem;">
+                ✨
               </div>
-              <p class="synthesis-text small" id="synthesisContent" style="line-height: 1.6;">
-                Loading briefing snapshot...
-              </p>
-            </article>
+              <div>
+                <div style="font-size: 0.95rem; font-weight: 600; color: #f1f5f9;">Rehearsal AI Assistant & Summarizer</div>
+                <div class="xs muted">Request instant pedagogical summaries, section comparisons, and deep analysis grounded exclusively in uploaded assets and rehearsal records.</div>
+              </div>
+            </div>
+            <button type="button" id="overviewOpenAiBtn" class="btn btn-primary btn-sm" style="white-space: nowrap; flex-shrink: 0;">Launch AI Assistant</button>
           </div>
 
         </section>
@@ -590,8 +601,78 @@
       </div>
     </main>
 
+    <!-- Floating AI Assistant Button -->
+    <button type="button" id="aiChatFabBtn" class="ai-fab-btn" aria-label="Open Rehearsal AI Assistant" title="Open Rehearsal AI Assistant">
+      <span class="ai-fab-sparkle">✨</span>
+      <span class="ai-fab-label">AI Assistant</span>
+    </button>
+
+    <!-- AI Chatbot Modal Dialog -->
+    <div id="aiChatModal" class="ai-modal-overlay" style="display: none;">
+      <div class="ai-modal-window bg-glass animate-scale-up" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
+        
+        <!-- Modal Header -->
+        <div class="ai-modal-header">
+          <div class="flex-row items-center gap-10">
+            <div class="ai-avatar-badge">✨</div>
+            <div>
+              <h3 id="aiModalTitle" style="font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text-main);">RehearsalIQ AI Assistant</h3>
+              <div class="xs muted">Grounded strictly in uploaded rehearsal assets & logs</div>
+            </div>
+          </div>
+          <div class="flex-row items-center gap-8">
+            <span class="badge badge-accent" id="aiGroundedBadge">Asset Grounded</span>
+            <button type="button" id="aiModalCloseBtn" class="ai-modal-close" aria-label="Close Chatbot">&times;</button>
+          </div>
+        </div>
+
+        <!-- Grounded Assets Indexing Bar -->
+        <div class="ai-asset-strip">
+          <div class="flex-row items-center justify-between gap-8 flex-wrap">
+            <div class="flex-row items-center gap-6">
+              <span class="pulse-dot" style="background-color: var(--status-green); box-shadow: 0 0 6px var(--status-green);"></span>
+              <span class="xs" id="aiAssetStatusText" style="color: var(--text-muted);">Grounded on <strong id="aiAssetCount">0</strong> assets & records</span>
+            </div>
+            <div class="flex-row gap-6">
+              <input type="file" id="aiAssetFileInput" accept=".txt,.md,.pdf,.csv,.json,.doc,.docx" style="display: none;" multiple />
+              <button type="button" id="aiUploadAssetBtn" class="btn btn-xs btn-outline">+ Upload Asset</button>
+              <button type="button" id="aiClearHistoryBtn" class="btn btn-xs btn-outline" title="Clear Chat History">Clear Chat</button>
+            </div>
+          </div>
+          <!-- Uploaded Assets Pills Bar -->
+          <div id="aiUploadedAssetsList" class="flex-row flex-wrap gap-4" style="margin-top: 6px;"></div>
+        </div>
+
+        <!-- Quick Suggested Prompt Chips -->
+        <div class="ai-quick-prompts" id="aiQuickPrompts">
+          <button type="button" class="ai-prompt-chip" data-prompt="Summarize this week's tutti rehearsal highlights and conductor observations.">📋 Weekly Tutti Summary</button>
+          <button type="button" class="ai-prompt-chip" data-prompt="Which sections require further development and what are their specific challenges?">⚠️ Priority Development Targets</button>
+          <button type="button" class="ai-prompt-chip" data-prompt="Analyze student reflections and identify common confidence bottlenecks.">🎓 Student Reflection Bottlenecks</button>
+          <button type="button" class="ai-prompt-chip" data-prompt="Compare progress and tempo stability between woodwinds and brass.">🎷 Woodwinds vs Brass Progress</button>
+        </div>
+
+        <!-- Chat Message Stream -->
+        <div class="ai-chat-messages" id="aiChatMessages">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Chat Input Form -->
+        <form id="aiChatForm" class="ai-chat-input-zone">
+          <textarea id="aiChatInput" class="ai-chat-textarea" placeholder="Ask for analysis, summaries, or sectional insights from uploaded assets..." rows="1" required></textarea>
+          <button type="submit" id="aiChatSendBtn" class="btn btn-primary ai-chat-send-btn" aria-label="Send message">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </form>
+        
+        <div class="ai-footer-note">
+          <span class="xs muted">Strict Guardrail: Answers are generated strictly from uploaded rehearsal assets, conductor logs, and sectional submissions. Outside speculation is prevented.</span>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

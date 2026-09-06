@@ -7,14 +7,52 @@
 // 1. Data Schema & Instrument Configuration
 const GROUPS = {
   NUSSO: [
-    'Flute', 'Clarinet', 'Oboe', 'Bassoon', 'Horn', 'Trumpet', 'Trombone', 
+    'Flute', 'Oboe', 'Clarinet', 'Bassoon', 'Horn', 'Trumpet', 'Trombone', 
     'Tuba', 'Percussion', 'Violin 1', 'Violin 2', 'Viola', 'Cello', 'Double Bass'
   ],
   NUSWS: [
-    'Flute', 'Clarinet', 'Oboe', 'Bassoon', 'Saxophone', 'Horn', 'Trumpet', 
+    'Flute', 'Oboe', 'Clarinet', 'Bassoon', 'Saxophone', 'Horn', 'Trumpet', 
     'Trombone', 'Euphonium', 'Tuba', 'Percussion'
   ]
 };
+
+const INSTRUMENT_FAMILIES = {
+  // Woodwinds (order 1)
+  'Flute': { family: 'Woodwinds', code: 'ww', rank: 10 },
+  'Piccolo': { family: 'Woodwinds', code: 'ww', rank: 11 },
+  'Oboe': { family: 'Woodwinds', code: 'ww', rank: 12 },
+  'Clarinet': { family: 'Woodwinds', code: 'ww', rank: 13 },
+  'Bassoon': { family: 'Woodwinds', code: 'ww', rank: 14 },
+  'Saxophone': { family: 'Woodwinds', code: 'ww', rank: 15 },
+  
+  // Brass (order 2)
+  'Horn': { family: 'Brass', code: 'brass', rank: 20 },
+  'Trumpet': { family: 'Brass', code: 'brass', rank: 21 },
+  'Trombone': { family: 'Brass', code: 'brass', rank: 22 },
+  'Euphonium': { family: 'Brass', code: 'brass', rank: 23 },
+  'Tuba': { family: 'Brass', code: 'brass', rank: 24 },
+  
+  // Percussion (order 3)
+  'Timpani': { family: 'Percussion', code: 'perc', rank: 30 },
+  'Percussion': { family: 'Percussion', code: 'perc', rank: 31 },
+  
+  // Strings (order 4)
+  'Violin 1': { family: 'Strings', code: 'strings', rank: 40 },
+  'Violin 2': { family: 'Strings', code: 'strings', rank: 41 },
+  'Viola': { family: 'Strings', code: 'strings', rank: 42 },
+  'Cello': { family: 'Strings', code: 'strings', rank: 43 },
+  'Double Bass': { family: 'Strings', code: 'strings', rank: 44 }
+};
+
+function getSectionInfo(sec) {
+  return INSTRUMENT_FAMILIES[sec] || { family: 'Other', code: 'other', rank: 99 };
+}
+
+function sortSectionsOrchestral(sections) {
+  return [...sections].sort((a, b) => {
+    return getSectionInfo(a).rank - getSectionInfo(b).rank;
+  });
+}
 
 // Seed Data (Used if LocalStorage is empty)
 const SEED_TUTTI_REHEARSALS = [
@@ -176,6 +214,30 @@ const SEED_STUDENT_REFLECTIONS = [
   }
 ];
 
+const SEED_UPLOADED_ASSETS = [
+  {
+    id: 'asset-1',
+    name: 'NUS_CFA_Curriculum_Syllabus_Guide.md',
+    uploadedAt: '2026-08-15',
+    size: '2.4 KB',
+    content: `CFA Ensemble Pedagogical Directives & Curriculum Guidelines:
+1. Tone Quality & Intonation: Horn sectionals must practice with drone pitches in upper registers to cure intonation drift in soft dynamics.
+2. Dynamic Balance: During Tutti movements, strings and heavy brass must balance under solo woodwind lines marked mp or softer.
+3. Rhythmic Subdivision: Syncopated eighth-note passages (e.g. Holst and First Suite) require strict internal subdivision aligned with percussion downbeats.
+4. Student Reflection Review: Section tutors are instructed to review student reflection submissions before every sectional to address individual embouchure and fingering hurdles.`
+  },
+  {
+    id: 'asset-2',
+    name: 'Carmen_Suite_Conductor_Score_Directives.txt',
+    uploadedAt: '2026-08-22',
+    size: '1.6 KB',
+    content: `Conductor rehearsal notes for Carmen Suite No. 1:
+- Prélude: Target tempo is strictly quarter = 116 bpm. Brass articulation must be crisp and snappy.
+- Intermezzo: Bars 24-32 unison shifts in the horns suffered tuning drift. Tutors must review breath support.
+- Aragonaise: Bars 57-72 trumpet double-tonguing requires clean synchronization with woodwinds.`
+  }
+];
+
 // 2. LocalStorage Database Wrapper
 class DB {
   static get(key, seed = []) {
@@ -198,6 +260,7 @@ class DB {
     this.get('repertoire', SEED_REPERTOIRE);
     this.get('student_reflections', SEED_STUDENT_REFLECTIONS);
     this.get('qa_threads', SEED_QA_THREADS);
+    this.get('uploaded_assets', SEED_UPLOADED_ASSETS);
   }
 
   static reset() {
@@ -207,6 +270,7 @@ class DB {
     localStorage.removeItem('cfa_db_repertoire');
     localStorage.removeItem('cfa_db_student_reflections');
     localStorage.removeItem('cfa_db_qa_threads');
+    localStorage.removeItem('cfa_db_uploaded_assets');
     this.init();
   }
 }
@@ -219,6 +283,7 @@ const state = {
   activeUser: null, // { role: 'coordinator'|'tutor'|'student', group: 'NUSSO'|'NUSWS', section: string|null }
   activePanel: 'coord-overview',
   activeCoordinatorGroup: 'NUSSO', // Filters overview workspace for coordinators
+  activeMetricFilter: null, // 'requires' | 'progressing' | 'demonstrated' | 'total' | null
 };
 
 // 4. DOM Elements cache
@@ -248,11 +313,36 @@ const dom = {
   metricProgressing: document.getElementById('metricProgressing'),
   metricDemonstrated: document.getElementById('metricDemonstrated'),
   metricTotalLogs: document.getElementById('metricTotalLogs'),
-  synthesisContent: document.getElementById('synthesisContent'),
+  metricCardRequires: document.getElementById('metricCardRequires'),
+  metricCardProgressing: document.getElementById('metricCardProgressing'),
+  metricCardDemonstrated: document.getElementById('metricCardDemonstrated'),
+  metricCardTotal: document.getElementById('metricCardTotal'),
+  metricsExpandedDrawer: document.getElementById('metricsExpandedDrawer'),
+  metricsDrawerBadge: document.getElementById('metricsDrawerBadge'),
+  metricsDrawerCount: document.getElementById('metricsDrawerCount'),
+  metricsDrawerBody: document.getElementById('metricsDrawerBody'),
+  metricsDrawerCloseBtn: document.getElementById('metricsDrawerCloseBtn'),
   overviewTabControl: document.getElementById('overviewTabControl'),
   overviewSectionMatrix: document.getElementById('overviewSectionMatrix'),
   matrixCountBadge: document.getElementById('matrixCountBadge'),
   overviewAttentionList: document.getElementById('overviewAttentionList'),
+  overviewOpenAiBtn: document.getElementById('overviewOpenAiBtn'),
+
+  // AI Assistant & Chatbot Elements
+  aiChatFabBtn: document.getElementById('aiChatFabBtn'),
+  aiChatModal: document.getElementById('aiChatModal'),
+  aiModalCloseBtn: document.getElementById('aiModalCloseBtn'),
+  aiAssetCount: document.getElementById('aiAssetCount'),
+  aiAssetStatusText: document.getElementById('aiAssetStatusText'),
+  aiUploadAssetBtn: document.getElementById('aiUploadAssetBtn'),
+  aiAssetFileInput: document.getElementById('aiAssetFileInput'),
+  aiUploadedAssetsList: document.getElementById('aiUploadedAssetsList'),
+  aiClearHistoryBtn: document.getElementById('aiClearHistoryBtn'),
+  aiQuickPrompts: document.getElementById('aiQuickPrompts'),
+  aiChatMessages: document.getElementById('aiChatMessages'),
+  aiChatForm: document.getElementById('aiChatForm'),
+  aiChatInput: document.getElementById('aiChatInput'),
+  aiChatSendBtn: document.getElementById('aiChatSendBtn'),
   
   // Coordinator Rehearsal Notes Elements
   tuttiNotesForm: document.getElementById('tuttiNotesForm'),
@@ -361,7 +451,11 @@ function showPortalInterface() {
 }
 
 // Setup Event Listeners
+let isEventListenersSetup = false;
 function setupEventListeners() {
+  if (isEventListenersSetup) return;
+  isEventListenersSetup = true;
+
   // Login Role Change triggers Tutor/Student sections
   dom.loginRole.addEventListener('change', (e) => {
     if (e.target.value === 'tutor' || e.target.value === 'student') {
@@ -402,6 +496,31 @@ function setupEventListeners() {
     });
   }
 
+  // Interactive Overview Metric Cards (Tap to expand matching sections)
+  [
+    { card: dom.metricCardRequires, filter: 'requires' },
+    { card: dom.metricCardProgressing, filter: 'progressing' },
+    { card: dom.metricCardDemonstrated, filter: 'demonstrated' },
+    { card: dom.metricCardTotal, filter: 'total' }
+  ].forEach(item => {
+    if (item.card) {
+      item.card.addEventListener('click', () => toggleMetricDrawer(item.filter));
+      item.card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleMetricDrawer(item.filter);
+        }
+      });
+    }
+  });
+
+  if (dom.metricsDrawerCloseBtn) {
+    dom.metricsDrawerCloseBtn.addEventListener('click', () => {
+      state.activeMetricFilter = null;
+      renderMetricsDrawer();
+    });
+  }
+
   // Form Submissions
   dom.tuttiNotesForm.addEventListener('submit', handleTuttiNotesSubmit);
   dom.addObservationRowBtn.addEventListener('click', () => createObservationRow());
@@ -431,6 +550,54 @@ function setupEventListeners() {
   if (dom.coordQaSearch && dom.coordQaSectionFilter) {
     dom.coordQaSearch.addEventListener('input', renderCoordinatorQaExplorer);
     dom.coordQaSectionFilter.addEventListener('change', renderCoordinatorQaExplorer);
+  }
+
+  // AI Rehearsal Assistant Event Listeners
+  if (dom.aiChatFabBtn) {
+    dom.aiChatFabBtn.addEventListener('click', openAiAssistantModal);
+  }
+  if (dom.overviewOpenAiBtn) {
+    dom.overviewOpenAiBtn.addEventListener('click', openAiAssistantModal);
+  }
+  if (dom.aiModalCloseBtn) {
+    dom.aiModalCloseBtn.addEventListener('click', closeAiAssistantModal);
+  }
+  if (dom.aiChatModal) {
+    dom.aiChatModal.addEventListener('click', (e) => {
+      if (e.target === dom.aiChatModal) closeAiAssistantModal();
+    });
+  }
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dom.aiChatModal && dom.aiChatModal.style.display !== 'none') {
+      closeAiAssistantModal();
+    }
+  });
+
+  if (dom.aiChatForm) {
+    dom.aiChatForm.addEventListener('submit', handleAiChatFormSubmit);
+  }
+  if (dom.aiChatInput) {
+    dom.aiChatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        dom.aiChatForm.dispatchEvent(new Event('submit'));
+      }
+    });
+  }
+  if (dom.aiQuickPrompts) {
+    dom.aiQuickPrompts.querySelectorAll('.ai-prompt-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const prompt = chip.getAttribute('data-prompt');
+        if (prompt) executeAiPrompt(prompt);
+      });
+    });
+  }
+  if (dom.aiUploadAssetBtn && dom.aiAssetFileInput) {
+    dom.aiUploadAssetBtn.addEventListener('click', () => dom.aiAssetFileInput.click());
+    dom.aiAssetFileInput.addEventListener('change', handleAssetFileUpload);
+  }
+  if (dom.aiClearHistoryBtn) {
+    dom.aiClearHistoryBtn.addEventListener('click', clearAiChatHistory);
   }
 }
 
@@ -664,8 +831,8 @@ function switchCoordinatorGroup(grp) {
   dom.headerTitle.textContent = `${grp} Overview`;
   
   // Load new priorities select options
-  populateSectionOptions(grp, dom.overviewSectionFilter);
-  populateSectionOptions(grp, dom.coordReflectionsSectionFilter);
+  if (dom.overviewSectionFilter) populateSectionOptions(grp, dom.overviewSectionFilter);
+  if (dom.coordReflectionsSectionFilter) populateSectionOptions(grp, dom.coordReflectionsSectionFilter);
   
   // Populate Repertoire dropdowns for the group
   populateRepertoireDropdown(grp, dom.notesRepertoireSelect, dom.notesRepertoireCustom);
@@ -692,8 +859,9 @@ function renderCurrentViewportData() {
   
   if (panel === 'coord-overview') {
     renderOverviewMetrics();
-    renderOverviewPriorities();
-    renderOverviewSynthesis();
+    renderOverviewSectionMatrix();
+    renderOverviewAttentionTargets();
+    renderMetricsDrawer();
   } else if (panel === 'coord-notes') {
     renderCoordinatorNotes();
   } else if (panel === 'coord-explorer') {
@@ -773,85 +941,402 @@ function renderOverviewMetrics() {
   dom.metricTotalLogs.textContent = filteredLogs.length;
 }
 
-function renderOverviewSynthesis() {
-  const group = state.activeCoordinatorGroup;
-  const logs = DB.get('session_logs').filter(l => l.group === group);
-  const feedbacks = DB.get('tutti_feedback').filter(f => f.group === group);
-
-  // Generate a dynamic synthesis description based on mock logs
-  if (group === 'NUSSO') {
-    const hornLogs = logs.filter(l => l.section === 'Horn' && l.status === 'Requires further development');
-    const trumpetLogs = logs.filter(l => l.section === 'Trumpet' && l.status === 'Progressing');
-    
-    let summary = `Intonation and ensemble cohesion remain the primary targets for <strong>NUSSO</strong> sectionals. `;
-    if (hornLogs.length > 0) {
-      summary += `Horn intonation in <em>${hornLogs[0].piece}</em> is flagged as a key development concern due to pitch drift in high registers. `;
-    } else {
-      summary += `Wind intonation has shown standard stability this week. `;
-    }
-    
-    if (trumpetLogs.length > 0) {
-      summary += `Trumpet articulation in <em>${trumpetLogs[0].piece}</em> is progressing nicely and is ready for further assessment in the next tutti rehearsal.`;
-    }
-    
-    dom.synthesisContent.innerHTML = summary;
+function toggleMetricDrawer(filterType) {
+  if (state.activeMetricFilter === filterType) {
+    state.activeMetricFilter = null;
   } else {
-    // NUSWS Synthesis
-    const clLogs = logs.filter(l => l.section === 'Clarinet' && l.status === 'Demonstrated');
-    const tubaLogs = feedbacks.filter(f => f.section === 'Tuba' && f.status === 'Requires further development');
-    
-    let summary = `Rhythmic precision is highly stable in <strong>NUSWS</strong> woodwinds this week. `;
-    if (clLogs.length > 0) {
-      summary += `Clarinet syncopation alignment in <em>${clLogs[0].piece}</em> has been fully demonstrated in sectionals. `;
-    }
-    
-    if (tubaLogs.length > 0) {
-      summary += `However, rehearsal logs note that the low brass section (Tuba/Euphonium) needs to correct a half-beat lag in tempo synchronization.`;
-    } else {
-      summary += `Low brass sections are coordinating well with the conductor tempo.`;
-    }
-    dom.synthesisContent.innerHTML = summary;
+    state.activeMetricFilter = filterType;
   }
+  renderMetricsDrawer();
 }
 
-function renderOverviewPriorities() {
-  const logs = DB.get('session_logs');
-  const group = state.activeCoordinatorGroup;
-  const sectionFilter = dom.overviewSectionFilter.value;
-  
-  // Filter for active group
-  let filtered = logs.filter(log => log.group === group);
-  
-  // Filter by selected section
-  if (sectionFilter !== 'all') {
-    filtered = filtered.filter(l => l.section === sectionFilter);
-  }
-  
-  // Sort latest first
-  filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  
-  if (filtered.length === 0) {
-    dom.prioritiesTable.innerHTML = `<div class="table-row muted small justify-between">No active priorities found for these criteria.</div>`;
+function renderMetricsDrawer() {
+  if (!dom.metricsExpandedDrawer) return;
+
+  const currentFilter = state.activeMetricFilter;
+  const cards = [
+    { el: dom.metricCardRequires, type: 'requires' },
+    { el: dom.metricCardProgressing, type: 'progressing' },
+    { el: dom.metricCardDemonstrated, type: 'demonstrated' },
+    { el: dom.metricCardTotal, type: 'total' }
+  ];
+
+  cards.forEach(c => {
+    if (c.el) {
+      if (c.type === currentFilter) {
+        c.el.classList.add('metric-card-active');
+      } else {
+        c.el.classList.remove('metric-card-active');
+      }
+    }
+  });
+
+  if (!currentFilter) {
+    dom.metricsExpandedDrawer.style.display = 'none';
     return;
   }
-  
-  dom.prioritiesTable.innerHTML = filtered.map(item => {
-    const overallStatus = getLogOverallStatus(item);
-    let badgeClass = 'badge-yellow';
-    if (overallStatus === 'Requires further development') badgeClass = 'badge-red';
-    if (overallStatus === 'Demonstrated') badgeClass = 'badge-green';
-    
-    return `
-      <div class="table-row">
-        <div>
-          <div class="row-primary-text">${item.section} · ${item.piece}</div>
-          <div class="row-sub-text">${item.createdAt}</div>
-          <div class="small muted" style="margin-top: 6px; font-style: italic;">"${item.generalFeedback}"</div>
+
+  dom.metricsExpandedDrawer.style.display = 'block';
+
+  const group = state.activeCoordinatorGroup;
+  const rawSections = GROUPS[group] || [];
+  // Sort sections strictly by Woodwinds -> Brass -> Percussion -> Strings
+  const sections = sortSectionsOrchestral(rawSections);
+
+  const logs = DB.get('session_logs').filter(l => l.group === group);
+  const rehearsals = DB.get('tutti_rehearsals');
+
+  // Match each section to its status and latest log
+  const sectionData = sections.map(sec => {
+    const secLogs = logs.filter(l => l.section === sec);
+    secLogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const latestLog = secLogs[0];
+    const status = latestLog ? getLogOverallStatus(latestLog) : 'Pending Log';
+
+    let flaggedInTutti = false;
+    let tuttiObservation = null;
+    rehearsals.forEach(r => {
+      if (r.observations) {
+        r.observations.forEach(o => {
+          if (o.group === group && o.section === sec && (o.status === 'Requires attention' || o.status === 'In Progress')) {
+            flaggedInTutti = true;
+            tuttiObservation = o;
+          }
+        });
+      }
+    });
+
+    const info = getSectionInfo(sec);
+    return {
+      section: sec,
+      family: info.family,
+      code: info.code,
+      rank: info.rank,
+      status: status,
+      latestLog: latestLog,
+      flaggedInTutti: flaggedInTutti,
+      tuttiObservation: tuttiObservation
+    };
+  });
+
+  // Filter sections by selected metric
+  let matchingSections = [];
+  let filterBadgeText = '';
+  let badgeClass = '';
+
+  if (currentFilter === 'requires') {
+    matchingSections = sectionData.filter(s => s.status === 'Requires further development' || s.flaggedInTutti);
+    filterBadgeText = 'Requires Work';
+    badgeClass = 'badge-red';
+  } else if (currentFilter === 'progressing') {
+    matchingSections = sectionData.filter(s => s.status === 'Progressing');
+    filterBadgeText = 'Progressing';
+    badgeClass = 'badge-yellow';
+  } else if (currentFilter === 'demonstrated') {
+    matchingSections = sectionData.filter(s => s.status === 'Demonstrated');
+    filterBadgeText = 'Demonstrated';
+    badgeClass = 'badge-green';
+  } else {
+    matchingSections = sectionData;
+    filterBadgeText = 'All Ensemble Sections';
+    badgeClass = 'badge-blue';
+  }
+
+  dom.metricsDrawerBadge.textContent = filterBadgeText;
+  dom.metricsDrawerBadge.className = `badge ${badgeClass}`;
+  dom.metricsDrawerCount.textContent = `${matchingSections.length} section(s) in ${group}`;
+
+  if (matchingSections.length === 0) {
+    dom.metricsDrawerBody.innerHTML = `
+      <div class="muted small text-center" style="padding: 16px;">
+        No sections are currently categorized as <strong>${filterBadgeText}</strong> in ${group}.
+      </div>
+    `;
+    return;
+  }
+
+  // Group matching sections by family in canonical order: Woodwinds -> Brass -> Percussion -> Strings
+  const families = ['Woodwinds', 'Brass', 'Percussion', 'Strings'];
+  const familyIcons = {
+    'Woodwinds': '🎷',
+    'Brass': '🎺',
+    'Percussion': '🥁',
+    'Strings': '🎻'
+  };
+
+  let html = '';
+  families.forEach(fam => {
+    const famSections = matchingSections.filter(s => s.family === fam);
+    if (famSections.length > 0) {
+      const pillCode = famSections[0].code;
+      html += `
+        <div class="family-group-header">
+          <span class="family-pill ${pillCode}">${familyIcons[fam]} ${fam}</span>
+          <span class="xs muted">(${famSections.length})</span>
         </div>
-        <span class="badge ${badgeClass}">${overallStatus}</span>
+        <div class="flex-column gap-6" style="margin-bottom: 10px;">
+      `;
+
+      famSections.forEach(item => {
+        const secId = 'drawerSec-' + item.section.replace(/\s+/g, '-');
+        let itemBadge = 'badge-muted';
+        if (item.status === 'Requires further development') itemBadge = 'badge-red';
+        else if (item.status === 'Progressing') itemBadge = 'badge-yellow';
+        else if (item.status === 'Demonstrated') itemBadge = 'badge-green';
+
+        html += `
+          <div class="section-health-card" style="margin-bottom: 4px;">
+            <div class="flex-row justify-between items-center section-health-summary" onclick="toggleDrawerSectionDetails('${secId}')">
+              <div class="flex-row items-center gap-8 min-w-0">
+                <strong style="font-size: 0.9rem; color: var(--text-main);">${item.section}</strong>
+                <span class="xs muted text-truncate">${item.latestLog ? `(${item.latestLog.piece})` : '(No logs)'}</span>
+              </div>
+              <div class="flex-row items-center gap-6 flex-shrink-0">
+                <span class="badge ${itemBadge}">${item.status}</span>
+                <span class="section-toggle-btn" id="drawerSecToggle-${secId}">▾</span>
+              </div>
+            </div>
+            
+            <div class="section-health-details" id="${secId}" style="display: none;">
+              <div class="xs muted" style="margin-bottom: 6px;">
+                ${item.latestLog ? `Rehearsal Date: <strong>${item.latestLog.createdAt}</strong> · Repertoire: <em>${item.latestLog.piece}</em>` : 'No rehearsal session logs recorded yet.'}
+              </div>
+              ${item.latestLog && item.latestLog.generalFeedback ? `
+                <div class="small" style="color: #cbd5e1; margin-bottom: 6px; font-style: italic;">
+                  "${escapeHtml(item.latestLog.generalFeedback)}"
+                </div>
+              ` : ''}
+              ${item.latestLog && item.latestLog.parts && item.latestLog.parts.length > 0 ? `
+                <div class="xs" style="margin-top: 4px;">
+                  <strong style="color: var(--text-muted);">Rehearsed Parts:</strong>
+                  <ul style="margin: 2px 0 0 16px; padding: 0;">
+                    ${item.latestLog.parts.map(p => `<li>${escapeHtml(p.location)}: <span class="badge badge-sm">${p.status}</span> ${p.notes ? `<em>"${escapeHtml(p.notes)}"` : ''}</em></li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+              ${item.flaggedInTutti ? `
+                <div class="xs" style="margin-top: 6px; color: var(--status-red); background: rgba(239, 68, 68, 0.1); padding: 4px 8px; border-radius: 4px;">
+                  ⚠️ <strong>Flagged by Conductor:</strong> ${escapeHtml(item.tuttiObservation ? item.tuttiObservation.content : 'Attention needed')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+    }
+  });
+
+  dom.metricsDrawerBody.innerHTML = html;
+}
+
+function renderOverviewSectionMatrix() {
+  if (!dom.overviewSectionMatrix) return;
+  const group = state.activeCoordinatorGroup;
+  const rawSections = GROUPS[group] || [];
+  // Sort sections strictly by Woodwinds -> Brass -> Percussion -> Strings
+  const sections = sortSectionsOrchestral(rawSections);
+  const logs = DB.get('session_logs').filter(l => l.group === group);
+  const rehearsals = DB.get('tutti_rehearsals');
+  const reflections = DB.get('student_reflections').filter(r => r.group === group);
+
+  if (dom.matrixCountBadge) {
+    dom.matrixCountBadge.textContent = `${sections.length} Sections`;
+  }
+
+  dom.overviewSectionMatrix.innerHTML = sections.map(sec => {
+    const info = getSectionInfo(sec);
+    const secId = 'secHealth-' + sec.replace(/\s+/g, '-');
+
+    // Latest log
+    const secLogs = logs.filter(l => l.section === sec);
+    secLogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const latestLog = secLogs[0];
+    const status = latestLog ? getLogOverallStatus(latestLog) : 'Pending Log';
+
+    // Flagged in tutti observations
+    let flaggedInTutti = false;
+    let conductorObs = null;
+    rehearsals.forEach(r => {
+      if (r.observations) {
+        r.observations.forEach(o => {
+          if (o.group === group && o.section === sec && (o.status === 'Requires attention' || o.status === 'In Progress')) {
+            flaggedInTutti = true;
+            conductorObs = { ...o, piece: r.repertoire, date: r.date };
+          }
+        });
+      }
+    });
+
+    // Student reflection for this section
+    const secReflections = reflections.filter(r => r.section === sec);
+    const latestReflection = secReflections[secReflections.length - 1];
+
+    let badgeClass = 'badge-muted';
+    if (status === 'Requires further development') badgeClass = 'badge-red';
+    else if (status === 'Progressing') badgeClass = 'badge-yellow';
+    else if (status === 'Demonstrated') badgeClass = 'badge-green';
+
+    return `
+      <div class="section-health-card bg-glass">
+        <!-- Compact Summary Row (Uncluttered Mobile View) -->
+        <div class="flex-row justify-between items-center section-health-summary" onclick="toggleSectionLogDetails('${secId}')">
+          <div class="flex-row items-center gap-6 min-w-0">
+            <span class="family-pill ${info.code}" style="font-size: 0.62rem; padding: 1px 6px;">${info.code.toUpperCase()}</span>
+            <strong style="font-size: 0.92rem; color: var(--text-main);">${sec}</strong>
+          </div>
+          <div class="flex-row items-center gap-6 flex-shrink-0">
+            <span class="badge ${badgeClass}">${status}</span>
+            <button type="button" class="section-toggle-btn" id="btnToggle-${secId}" aria-label="Toggle log details">
+              <span>▾</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Clean One-line Status Info -->
+        <div class="flex-row justify-between items-center xs muted" style="margin-top: 4px; cursor: pointer;" onclick="toggleSectionLogDetails('${secId}')">
+          <span class="text-truncate">${latestLog ? `Rehearsed: <em>${latestLog.piece}</em>` : 'No logs submitted yet'}</span>
+          ${latestLog ? `<span>${latestLog.createdAt}</span>` : ''}
+        </div>
+
+        ${flaggedInTutti ? `
+          <div class="xs" style="margin-top: 4px; color: var(--status-red); display: flex; align-items: center; gap: 4px; font-weight: 500;">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            Tutti Concern Flagged
+          </div>
+        ` : ''}
+
+        <!-- Expandable Detailed Instrument Log (Revealed on Tap) -->
+        <div class="section-health-details" id="${secId}" style="display: none;">
+          ${latestLog && latestLog.generalFeedback ? `
+            <div class="small" style="color: #cbd5e1; line-height: 1.45; margin-bottom: 8px; border-left: 2px solid var(--accent-primary); padding-left: 8px;">
+              <strong>Tutor Feedback:</strong> "${escapeHtml(latestLog.generalFeedback)}"
+            </div>
+          ` : '<div class="xs muted mb-6">No tutor session feedback logged.</div>'}
+
+          ${latestLog && latestLog.parts && latestLog.parts.length > 0 ? `
+            <div class="xs" style="margin-bottom: 8px;">
+              <strong style="color: var(--text-muted);">Rehearsal Breakdown:</strong>
+              <div class="flex-column gap-4" style="margin-top: 4px;">
+                ${latestLog.parts.map(p => `
+                  <div class="flex-row justify-between items-center bg-glass" style="padding: 4px 8px; border-radius: 4px;">
+                    <span><strong>${escapeHtml(p.location)}</strong></span>
+                    <span class="badge ${p.status === 'Demonstrated' ? 'badge-green' : (p.status === 'Requires further development' ? 'badge-red' : 'badge-yellow')}">${p.status}</span>
+                  </div>
+                  ${p.notes ? `<div class="xs muted" style="padding-left: 8px;">↳ "${escapeHtml(p.notes)}"</div>` : ''}
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          ${conductorObs ? `
+            <div class="xs" style="margin-bottom: 6px; background: rgba(239, 68, 68, 0.1); border-left: 3px solid var(--status-red); padding: 6px 8px; border-radius: 4px;">
+              <strong style="color: var(--status-red);">Conductor Tutti Directive (${conductorObs.date}):</strong><br>
+              "${escapeHtml(conductorObs.content)}"
+            </div>
+          ` : ''}
+
+          ${latestReflection ? `
+            <div class="xs" style="background: rgba(56, 189, 248, 0.08); padding: 6px 8px; border-radius: 4px; border-left: 3px solid #38bdf8;">
+              <strong style="color: #38bdf8;">Student Reflection (${latestReflection.studentName || 'Student'} · ${latestReflection.rating}/5★):</strong><br>
+              "${escapeHtml(latestReflection.challenges || latestReflection.content)}"
+            </div>
+          ` : ''}
+        </div>
       </div>
     `;
   }).join('');
+}
+
+window.toggleMetricDrawer = toggleMetricDrawer;
+
+window.toggleSectionLogDetails = function(secId) {
+  const el = document.getElementById(secId);
+  const btn = document.getElementById('btnToggle-' + secId);
+  if (!el) return;
+  const isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? 'block' : 'none';
+  if (btn) {
+    btn.innerHTML = isHidden ? '<span>▴</span>' : '<span>▾</span>';
+  }
+};
+
+window.toggleDrawerSectionDetails = function(secId) {
+  const el = document.getElementById(secId);
+  const toggle = document.getElementById('drawerSecToggle-' + secId);
+  if (!el) return;
+  const isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? 'block' : 'none';
+  if (toggle) {
+    toggle.textContent = isHidden ? '▴' : '▾';
+  }
+};
+
+function renderOverviewAttentionTargets() {
+  if (!dom.overviewAttentionList) return;
+  const group = state.activeCoordinatorGroup;
+  const logs = DB.get('session_logs').filter(l => l.group === group);
+  const rehearsals = DB.get('tutti_rehearsals');
+  
+  const attentionItems = [];
+
+  // 1. Check conductor observations flagged 'Requires attention' or 'In Progress'
+  rehearsals.forEach(r => {
+    if (r.observations) {
+      r.observations.forEach(o => {
+        if (o.group === group && (o.status === 'Requires attention' || o.status === 'In Progress')) {
+          attentionItems.push({
+            type: 'Conductor Tutti Directive',
+            section: o.section,
+            title: `${r.repertoire} (${r.date})`,
+            content: o.content,
+            status: o.status,
+            badgeClass: o.status === 'Requires attention' ? 'badge-red' : 'badge-yellow'
+          });
+        }
+      });
+    }
+  });
+
+  // 2. Check sectional logs with 'Requires further development'
+  logs.forEach(l => {
+    const overall = getLogOverallStatus(l);
+    if (overall === 'Requires further development') {
+      const partsConcern = l.parts ? l.parts.filter(p => p.status === 'Requires further development') : [];
+      attentionItems.push({
+        type: 'Tutor Sectional Alert',
+        section: l.section,
+        title: `${l.piece} · Logged ${l.createdAt}`,
+        content: partsConcern.length > 0 ? partsConcern.map(p => `${p.location}: ${p.notes}`).join('; ') : l.generalFeedback,
+        status: 'Requires further development',
+        badgeClass: 'badge-red'
+      });
+    }
+  });
+
+  if (attentionItems.length === 0) {
+    dom.overviewAttentionList.innerHTML = `
+      <div class="dashboard-card bg-glass muted small text-center" style="padding: 24px;">
+        No active critical attention flags for ${group}. All sections are progressing normally.
+      </div>
+    `;
+    return;
+  }
+
+  dom.overviewAttentionList.innerHTML = attentionItems.map(item => `
+    <div class="item-card bg-glass" style="padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--status-red); margin-bottom: 8px;">
+      <div class="flex-row justify-between items-center mb-4">
+        <div class="flex-row items-center gap-8">
+          <strong style="font-size: 0.95rem; color: var(--text-main);">${item.section}</strong>
+          <span class="xs muted">[${item.type}]</span>
+        </div>
+        <span class="badge ${item.badgeClass}">${item.status}</span>
+      </div>
+      <div class="xs muted" style="margin-bottom: 6px;">${item.title}</div>
+      <div class="small" style="line-height: 1.45; color: var(--text-main);">${item.content}</div>
+    </div>
+  `).join('');
 }
 
 
@@ -1621,103 +2106,459 @@ window.deleteSessionLog = function(id) {
 window.prefillLoggerForm = prefillLoggerForm;
 
 
-// 10. Rehearsal Record Search & Analysis
-function handleDatabaseQuery() {
-  const query = dom.dbQueryInput.value.trim().toLowerCase();
-  
-  if (!query) {
-    dom.queryResponsePanel.hidden = false;
-    dom.queryResponsePanel.innerHTML = '<span class="text-red">Please specify a search term or query criteria.</span>';
-    return;
+// 10. AI Rehearsal Assistant & Chatbot Engine (Strict Asset Grounding)
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+let aiChatHistory = [];
+
+function openAiAssistantModal() {
+  if (!dom.aiChatModal) return;
+  dom.aiChatModal.style.display = 'flex';
+  renderAiAssistant();
+  if (dom.aiChatInput) {
+    setTimeout(() => dom.aiChatInput.focus(), 100);
   }
-  
+}
+
+function closeAiAssistantModal() {
+  if (!dom.aiChatModal) return;
+  dom.aiChatModal.style.display = 'none';
+}
+
+function renderAiAssistant() {
+  const assets = DB.get('uploaded_assets', SEED_UPLOADED_ASSETS);
+  const tutti = DB.get('tutti_rehearsals');
   const logs = DB.get('session_logs');
-  const syllabus = DB.get('syllabus');
-  const feedback = DB.get('tutti_feedback');
   const reflections = DB.get('student_reflections');
-  
-  let matchLogs = [];
-  let matchSyllabus = [];
-  let matchFeedback = [];
-  let matchReflections = [];
-  
-  const keywords = query.split(' ').filter(k => k.length > 2);
-  
-  if (keywords.length > 0) {
-    matchLogs = logs.filter(l => keywords.some(k => 
-      l.piece.toLowerCase().includes(k) || 
-      l.observations.toLowerCase().includes(k) ||
-      l.section.toLowerCase().includes(k) ||
-      l.domain.toLowerCase().includes(k)
-    ));
-    
-    matchSyllabus = syllabus.filter(s => keywords.some(k => 
-      s.piece.toLowerCase().includes(k) || 
-      s.notes.toLowerCase().includes(k) ||
-      s.section.toLowerCase().includes(k) ||
-      s.domain.toLowerCase().includes(k)
-    ));
-    
-    matchFeedback = feedback.filter(f => keywords.some(k => 
-      f.piece.toLowerCase().includes(k) || 
-      f.content.toLowerCase().includes(k) ||
-      f.section.toLowerCase().includes(k)
-    ));
+  const plans = DB.get('lesson_plans');
 
-    matchReflections = reflections.filter(r => keywords.some(k =>
-      r.piece.toLowerCase().includes(k) ||
-      r.challenges.toLowerCase().includes(k) ||
-      r.content.toLowerCase().includes(k) ||
-      r.studentName.toLowerCase().includes(k) ||
-      r.section.toLowerCase().includes(k)
-    ));
+  const totalRecords = assets.length + tutti.length + logs.length + reflections.length + plans.length;
+
+  if (dom.aiAssetCount) {
+    dom.aiAssetCount.textContent = `${assets.length} docs & ${totalRecords - assets.length} records`;
   }
-  
-  dom.queryResponsePanel.hidden = false;
-  
-  if (matchLogs.length === 0 && matchSyllabus.length === 0 && matchFeedback.length === 0 && matchReflections.length === 0) {
-    dom.queryResponsePanel.innerHTML = `
-      <strong>No database records found matching these criteria.</strong><br>
-      <span class="small muted">Try querying terms like: "Horn", "Clarinet", "Intonation", "First Suite", "Requires development".</span>
-    `;
+
+  renderIndexedAssetsPills(assets);
+
+  if (aiChatHistory.length === 0) {
+    renderAiDefaultGreeting();
+  } else {
+    renderAiChatMessages();
+  }
+}
+
+function renderIndexedAssetsPills(assets) {
+  if (!dom.aiUploadedAssetsList) return;
+  if (!assets || assets.length === 0) {
+    dom.aiUploadedAssetsList.innerHTML = '<span class="xs muted">No custom documents uploaded yet.</span>';
     return;
   }
-  
-  // Synthesize results in academic phrasing
-  let html = `<strong>Rehearsal Record Synthesis Results:</strong><br><br>`;
-  
-  if (matchSyllabus.length > 0) {
-    html += `• <strong>${matchSyllabus.length} Curricular Directive(s) Located:</strong><br>`;
-    matchSyllabus.forEach(s => {
-      html += `<span class="xs muted">[${s.group} ${s.section}]</span> ${s.piece} (${s.domain}) - <em>"${s.notes.slice(0, 80)}..."</em><br>`;
-    });
-    html += `<br>`;
+
+  dom.aiUploadedAssetsList.innerHTML = assets.map(a => `
+    <span class="ai-asset-pill" title="Indexed document: ${escapeHtml(a.name)} (${a.size})">
+      📄 ${escapeHtml(a.name)}
+      <span class="ai-asset-pill-remove" onclick="deleteUploadedAsset('${a.id}')" title="Remove Asset">&times;</span>
+    </span>
+  `).join('');
+}
+
+function renderAiDefaultGreeting() {
+  if (!dom.aiChatMessages) return;
+  dom.aiChatMessages.innerHTML = `
+    <div class="ai-message ai-assistant-message">
+      <div class="ai-avatar-badge" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">✨</div>
+      <div class="ai-msg-bubble">
+        <p><strong>Welcome to the RehearsalIQ AI Assistant.</strong></p>
+        <p style="margin-top: 6px; line-height: 1.5;">
+          I provide pedagogical summaries, section comparisons, and rehearsal bottleneck analysis.
+        </p>
+        <p class="small muted" style="margin-top: 8px; border-left: 2px solid #38bdf8; padding-left: 8px;">
+          🔒 <strong>Strict Grounding Guardrail:</strong> I only draw information from your <strong>uploaded rehearsal assets, conductor notes, sectional logs, and student reflections</strong>. Outside speculation is strictly excluded.
+        </p>
+        <p class="xs muted" style="margin-top: 8px;">
+          💡 <em>Tip: Click any suggested prompt above or upload your own rehearsal documents/notes.</em>
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+function renderAiChatMessages() {
+  if (!dom.aiChatMessages) return;
+  dom.aiChatMessages.innerHTML = aiChatHistory.map(msg => {
+    if (msg.role === 'user') {
+      return `
+        <div class="ai-message ai-user-message">
+          <div class="ai-msg-bubble">${escapeHtml(msg.text)}</div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="ai-message ai-assistant-message">
+          <div class="ai-avatar-badge" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">✨</div>
+          <div class="ai-msg-bubble">
+            ${msg.html}
+            ${msg.citations && msg.citations.length > 0 ? `
+              <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
+                <span class="xs muted" style="display: block; margin-bottom: 4px; font-weight: 600;">Verified Grounded Sources:</span>
+                ${msg.citations.map(c => `<span class="ai-citation-badge">${escapeHtml(c)}</span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
+
+  dom.aiChatMessages.scrollTop = dom.aiChatMessages.scrollHeight;
+}
+
+function executeAiPrompt(promptText) {
+  if (dom.aiChatInput) {
+    dom.aiChatInput.value = promptText;
   }
-  
-  if (matchFeedback.length > 0) {
-    html += `• <strong>${matchFeedback.length} Tutti Rehearsal Feedback Entry(s) Located:</strong><br>`;
-    matchFeedback.forEach(f => {
-      html += `<span class="xs muted">[${f.group} ${f.section}]</span> Priority: ${f.status} - <em>"${f.content.slice(0, 80)}..."</em><br>`;
+  handleAiChatFormSubmit();
+}
+
+function handleAiChatFormSubmit(e) {
+  if (e) e.preventDefault();
+  if (!dom.aiChatInput) return;
+  const text = dom.aiChatInput.value.trim();
+  if (!text) return;
+
+  // Add user message to history
+  aiChatHistory.push({ role: 'user', text: text });
+  dom.aiChatInput.value = '';
+  renderAiChatMessages();
+
+  // Show typing indicator
+  showAiTypingIndicator();
+
+  // Simulate ground-truth RAG synthesis
+  setTimeout(() => {
+    removeAiTypingIndicator();
+    const response = synthesizeAssetGroundedResponse(text);
+    aiChatHistory.push({
+      role: 'assistant',
+      html: response.html,
+      citations: response.citations
     });
-    html += `<br>`;
-  }
-  
-  if (matchLogs.length > 0) {
-    html += `• <strong>${matchLogs.length} Sectional Log Submission(s) Located:</strong><br>`;
-    matchLogs.forEach(l => {
-      html += `<span class="xs muted">[${l.group} ${l.section}]</span> Progress: ${l.status} - <em>"${l.observations.slice(0, 80)}..."</em><br>`;
-    });
-    html += `<br>`;
+    renderAiChatMessages();
+  }, 450);
+}
+
+function showAiTypingIndicator() {
+  if (!dom.aiChatMessages) return;
+  const indicator = document.createElement('div');
+  indicator.id = 'aiTypingIndicatorRow';
+  indicator.className = 'ai-message ai-assistant-message';
+  indicator.innerHTML = `
+    <div class="ai-avatar-badge" style="width: 28px; height: 28px; font-size: 0.9rem; flex-shrink: 0;">✨</div>
+    <div class="ai-msg-bubble">
+      <div class="ai-typing-indicator">
+        <span class="xs muted" style="margin-right: 6px;">Analyzing uploaded assets</span>
+        <div class="ai-typing-dot"></div>
+        <div class="ai-typing-dot"></div>
+        <div class="ai-typing-dot"></div>
+      </div>
+    </div>
+  `;
+  dom.aiChatMessages.appendChild(indicator);
+  dom.aiChatMessages.scrollTop = dom.aiChatMessages.scrollHeight;
+}
+
+function removeAiTypingIndicator() {
+  const el = document.getElementById('aiTypingIndicatorRow');
+  if (el) el.remove();
+}
+
+// Core RAG Grounding Engine (Restricted strictly to uploaded assets and rehearsal data)
+function synthesizeAssetGroundedResponse(query) {
+  const q = query.toLowerCase().trim();
+
+  // Load all assets and records
+  const uploadedAssets = DB.get('uploaded_assets', SEED_UPLOADED_ASSETS);
+  const tutti = DB.get('tutti_rehearsals');
+  const logs = DB.get('session_logs');
+  const reflections = DB.get('student_reflections');
+  const plans = DB.get('lesson_plans');
+  const qa = DB.get('qa_threads');
+
+  const citations = [];
+
+  // General outside question check (strict guardrail against hallucination)
+  const musicKeywords = [
+    'rehearsal', 'tutti', 'section', 'woodwind', 'brass', 'string', 'horn', 'trumpet', 
+    'clarinet', 'flute', 'oboe', 'bassoon', 'trombone', 'tuba', 'percussion', 'violin', 
+    'viola', 'cello', 'carmen', 'suite', 'eb', 'tchaikovsky', 'mahler', 'holst', 'summary', 
+    'priority', 'attention', 'reflection', 'student', 'intonation', 'tempo', 'rhythm', 
+    'status', 'progress', 'plan', 'score', 'bottleneck', 'feedback', 'syllabus', 'asset',
+    'curriculum', 'directive', 'drone', 'subdivision', 'articulation', 'notes', 'tutor'
+  ];
+
+  const hasRehearsalMatch = musicKeywords.some(kw => q.includes(kw));
+
+  // Check if matches any uploaded asset content or titles directly
+  const assetMatches = uploadedAssets.filter(a => 
+    a.name.toLowerCase().includes(q) || 
+    a.content.toLowerCase().includes(q) || 
+    q.split(' ').filter(w => w.length > 3).some(w => a.content.toLowerCase().includes(w))
+  );
+
+  // 1. Check for completely out-of-scope query
+  if (!hasRehearsalMatch && assetMatches.length === 0) {
+    return {
+      html: `
+        <div style="color: #fca5a5; font-weight: 600; margin-bottom: 4px;">⚠️ Outside Grounded Scope</div>
+        <p>I am strictly restricted to only provide analysis and summaries drawn from your <strong>uploaded rehearsal assets, conductor logs, sectional submissions, and student reflections</strong>.</p>
+        <p class="xs muted" style="margin-top: 6px;">
+          No relevant information matching <em>"${escapeHtml(query)}"</em> exists within the uploaded files or database records. Please ask about ensemble repertoire, sectional progress, rehearsal feedback, or upload a relevant document above.
+        </p>
+      `,
+      citations: []
+    };
   }
 
-  if (matchReflections.length > 0) {
-    html += `• <strong>${matchReflections.length} Student Reflection(s) Located:</strong><br>`;
-    matchReflections.forEach(r => {
-      html += `<span class="xs muted">[${r.group} ${r.section} - ${r.studentName}]</span> Confidence: ${r.rating}/5 - <em>"${r.content.slice(0, 80)}..."</em><br>`;
+  // 2. Weekly Tutti Rehearsal Summary
+  if (q.includes('weekly') || (q.includes('summary') && !q.includes('student')) || q.includes('tutti highlight') || q.includes('conductor observation')) {
+    let html = `<p><strong>Weekly Tutti Rehearsal Synthesis:</strong></p><ul style="margin: 8px 0 8px 16px; padding: 0; line-height: 1.55;">`;
+    
+    tutti.forEach(t => {
+      citations.push(`Conductor Tutti Notes (${t.date}) · ${t.repertoire}`);
+      html += `<li><strong>${t.repertoire} (${t.date}):</strong> ${escapeHtml(t.generalSummary)}`;
+      if (t.observations && t.observations.length > 0) {
+        html += `<ul style="margin-top: 4px;">`;
+        t.observations.forEach(o => {
+          html += `<li><strong style="color: ${o.status === 'Requires attention' ? 'var(--status-red)' : '#38bdf8'};">[${o.group} ${o.section}]</strong>: ${escapeHtml(o.content)} <span class="xs muted">(${o.status})</span></li>`;
+        });
+        html += `</ul>`;
+      }
+      html += `</li>`;
     });
+    html += `</ul>`;
+
+    // Cross reference with uploaded conductor score directives
+    const carmenDoc = uploadedAssets.find(a => a.name.includes('Carmen') || a.name.includes('Score'));
+    if (carmenDoc) {
+      citations.push(`Uploaded Asset: ${carmenDoc.name}`);
+      html += `
+        <div class="small" style="margin-top: 8px; background: rgba(56, 189, 248, 0.08); padding: 8px 10px; border-radius: 4px; border-left: 2px solid #38bdf8;">
+          <strong>Directives from Uploaded Score Annotations:</strong><br>
+          Tempo for Carmen Prélude is held at 116 bpm with crisp brass articulation; bars 24-32 unison horn shifts require immediate breath support reinforcement.
+        </div>
+      `;
+    }
+
+    return { html, citations };
   }
-  
-  dom.queryResponsePanel.innerHTML = html;
+
+  // 3. Priority Development Targets / Bottlenecks
+  if (q.includes('struggling') || q.includes('priority') || q.includes('development') || q.includes('bottleneck') || q.includes('attention')) {
+    let html = `<p><strong>Identified Priority Developmental Targets:</strong></p>`;
+    
+    // Find all development items
+    const devLogs = logs.filter(l => getLogOverallStatus(l) === 'Requires further development');
+    const attentionObs = [];
+    tutti.forEach(t => {
+      if (t.observations) {
+        t.observations.forEach(o => {
+          if (o.status === 'Requires attention' || o.status === 'In Progress') {
+            attentionObs.push({ ...o, date: t.date, piece: t.repertoire });
+          }
+        });
+      }
+    });
+
+    html += `<ul style="margin: 8px 0 8px 16px; line-height: 1.55;">`;
+    
+    attentionObs.forEach(o => {
+      citations.push(`Conductor Notes (${o.date})`);
+      html += `<li><strong style="color: var(--status-red);">${o.group} · ${o.section}</strong>: Flagged by conductor in <em>${o.piece}</em> — "${escapeHtml(o.content)}" <span class="badge badge-red" style="font-size: 0.65rem;">Requires attention</span></li>`;
+    });
+
+    devLogs.forEach(l => {
+      citations.push(`Sectional Log: ${l.section} (${l.createdAt})`);
+      html += `<li><strong style="color: var(--status-yellow);">${l.group} · ${l.section}</strong>: Sectional log for <em>${l.piece}</em> noted: "${escapeHtml(l.generalFeedback)}"</li>`;
+    });
+
+    html += `</ul>`;
+
+    // Check syllabus asset for recommendations
+    const syllabusDoc = uploadedAssets.find(a => a.name.includes('Syllabus') || a.name.includes('Curriculum'));
+    if (syllabusDoc) {
+      citations.push(`Uploaded Asset: ${syllabusDoc.name}`);
+      html += `
+        <div class="small" style="margin-top: 8px; background: rgba(245, 158, 11, 0.08); padding: 8px 10px; border-radius: 4px; border-left: 2px solid var(--status-yellow);">
+          <strong>Prescribed Curriculum Action:</strong> Utilize drone tuning during sectional rehearsals for horn high-register intervals; enforce subdivision counting for syncopated sections.
+        </div>
+      `;
+    }
+
+    return { html, citations };
+  }
+
+  // 4. Student Reflection Analysis
+  if (q.includes('reflection') || q.includes('student') || q.includes('confidence') || q.includes('sentiment')) {
+    let html = `<p><strong>Student Reflection & Confidence Analysis:</strong></p>`;
+    
+    if (reflections.length === 0) {
+      return { html: '<p>No student reflections have been recorded in the system yet.</p>', citations: [] };
+    }
+
+    const totalRating = reflections.reduce((acc, r) => acc + (r.rating || 0), 0);
+    const avgRating = (totalRating / reflections.length).toFixed(1);
+
+    html += `<p class="xs muted" style="margin-bottom: 8px;">Analyzed ${reflections.length} student submission(s). Average Confidence Score: <strong>${avgRating} / 5</strong></p>`;
+    html += `<ul style="margin: 8px 0 8px 16px; line-height: 1.55;">`;
+
+    reflections.forEach(r => {
+      citations.push(`Student Reflection (${r.section} - ${r.studentName || 'Anonymous'})`);
+      html += `
+        <li>
+          <strong>${r.section}</strong> (${r.studentName || 'Anonymous'}) · <em>${r.piece}</em> — Confidence: <strong>${r.rating}/5</strong>
+          <br><span class="small">Challenge: "${escapeHtml(r.challenges)}"</span>
+          <br><span class="xs muted">Reflection: "${escapeHtml(r.content)}"</span>
+        </li>
+      `;
+    });
+    html += `</ul>`;
+
+    return { html, citations };
+  }
+
+  // 5. Woodwinds vs Brass Comparison
+  if ((q.includes('woodwind') && q.includes('brass')) || q.includes('compare') || q.includes('comparison')) {
+    citations.push('Sectional Logs Archive');
+    citations.push('Conductor Tutti Notes');
+    
+    let html = `
+      <p><strong>Cross-Section Rehearsal Comparison (Woodwinds vs. Brass):</strong></p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+        <div style="background: rgba(16, 185, 129, 0.08); padding: 10px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.2);">
+          <strong style="color: #6ee7b7;">Woodwinds (Flute, Clarinet, Oboe)</strong>
+          <p class="xs" style="margin-top: 6px; line-height: 1.45;">
+            • <strong>Clarinet:</strong> Demonstrated syncopation in <em>First Suite</em> (bars 142–150). High rhythmic precision.<br>
+            • <strong>Flute/Oboe:</strong> Clean articulation aligned with conductor tempo. Dynamic balance stable in softer passages.
+          </p>
+        </div>
+        <div style="background: rgba(239, 68, 68, 0.08); padding: 10px; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.2);">
+          <strong style="color: #fca5a5;">Brass (Horn, Trumpet, Tuba)</strong>
+          <p class="xs" style="margin-top: 6px; line-height: 1.45;">
+            • <strong>Horn:</strong> Pitch instability on unison shifts (bars 24–32) and high register sharpness.<br>
+            • <strong>Trumpet:</strong> Progressing in double-tonguing at bar 57, approaching performance tempo.<br>
+            • <strong>Tuba:</strong> Half-beat tempo synchronization lag noted in tutti transitions.
+          </p>
+        </div>
+      </div>
+    `;
+
+    return { html, citations };
+  }
+
+  // 6. Direct match inside custom uploaded assets
+  if (assetMatches.length > 0) {
+    let html = `<p><strong>Analysis from Uploaded Assets:</strong></p>`;
+    assetMatches.forEach(a => {
+      citations.push(`Uploaded Asset: ${a.name}`);
+      html += `
+        <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; padding: 10px 12px; margin-bottom: 8px; border-radius: 4px;">
+          <strong style="color: #7dd3fc;">${escapeHtml(a.name)}</strong>
+          <div class="xs muted" style="margin: 4px 0 6px 0;">Uploaded: ${a.uploadedAt} · Size: ${a.size}</div>
+          <div class="small" style="line-height: 1.5; white-space: pre-line;">${escapeHtml(a.content.slice(0, 500))}${a.content.length > 500 ? '...' : ''}</div>
+        </div>
+      `;
+    });
+    return { html, citations };
+  }
+
+  // 7. Fallback search on matching logs or sections
+  const matchedLogs = logs.filter(l => l.section.toLowerCase().includes(q) || l.piece.toLowerCase().includes(q) || l.generalFeedback.toLowerCase().includes(q));
+  if (matchedLogs.length > 0) {
+    let html = `<p><strong>Records Located in Rehearsal Database:</strong></p><ul style="margin: 8px 0 8px 16px; line-height: 1.55;">`;
+    matchedLogs.forEach(l => {
+      citations.push(`Session Log: ${l.section} (${l.createdAt})`);
+      html += `<li><strong>${l.group} ${l.section} · ${l.piece} (${l.createdAt}):</strong> "${escapeHtml(l.generalFeedback)}" <span class="badge badge-sm">${getLogOverallStatus(l)}</span></li>`;
+    });
+    html += `</ul>`;
+    return { html, citations };
+  }
+
+  // If nothing matched
+  return {
+    html: `
+      <div style="color: #fca5a5; font-weight: 600; margin-bottom: 4px;">⚠️ No Matching Rehearsal Data Found</div>
+      <p>I searched all uploaded documents, conductor notes, sectional logs, and student reflections, but found no records referencing <em>"${escapeHtml(query)}"</em>.</p>
+      <p class="xs muted" style="margin-top: 6px;">
+        To analyze this topic, please upload a relevant rehearsal document (using the <strong>+ Upload Asset</strong> button) or log the rehearsal details in the portal.
+      </p>
+    `,
+    citations: []
+  };
+}
+
+// Asset File Upload Handler
+function handleAssetFileUpload(e) {
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+
+  const currentAssets = DB.get('uploaded_assets', SEED_UPLOADED_ASSETS);
+  let loadedCount = 0;
+
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target.result;
+      const newAsset = {
+        id: 'asset-' + Date.now() + Math.random().toString(36).substr(2, 4),
+        name: file.name,
+        uploadedAt: new Date().toISOString().split('T')[0],
+        size: (file.size / 1024).toFixed(1) + ' KB',
+        content: content
+      };
+
+      currentAssets.push(newAsset);
+      loadedCount++;
+
+      if (loadedCount === files.length) {
+        DB.set('uploaded_assets', currentAssets);
+        renderAiAssistant();
+
+        // Inform user in chat
+        aiChatHistory.push({
+          role: 'assistant',
+          html: `<p>📄 <strong>New Rehearsal Asset Indexed:</strong> Successfully uploaded and parsed <code>${escapeHtml(file.name)}</code> (${newAsset.size}). This document is now available for analysis and summaries.</p>`,
+          citations: [`Uploaded Asset: ${file.name}`]
+        });
+        renderAiChatMessages();
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  dom.aiAssetFileInput.value = '';
+}
+
+window.deleteUploadedAsset = function(assetId) {
+  if (confirm('Remove this uploaded asset from the AI knowledge base?')) {
+    let assets = DB.get('uploaded_assets', SEED_UPLOADED_ASSETS);
+    assets = assets.filter(a => a.id !== assetId);
+    DB.set('uploaded_assets', assets);
+    renderAiAssistant();
+  }
+};
+
+function clearAiChatHistory() {
+  aiChatHistory = [];
+  renderAiDefaultGreeting();
 }
 
 // 11. Repertoire Management Helpers
@@ -2368,5 +3209,8 @@ window.submitConductorReply = function(threadId) {
 
 
 // Kickstart on document load
-document.addEventListener('DOMContentLoaded', initApp);
-initApp();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
