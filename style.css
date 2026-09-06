@@ -127,6 +127,9 @@ input, select, textarea {
   text-overflow: ellipsis !important;
   min-width: 0;
 }
+@media (max-width: 480px) {
+  .hide-xs { display: none !important; }
+}
 
 /* Grid systems */
 .grid-layout { display: grid; gap: 12px; width: 100%; }
