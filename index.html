@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
 
@@ -108,91 +108,47 @@
 
         <!-- ==================== COORDINATOR VIEWPORTS ==================== -->
 
-        <!-- 1. Coordinator Overview Panel (Tabbed Minimalist Dashboard) -->
+        <!-- 1. Coordinator Overview Panel (Clean Minimalist Sections & Repertoire Hub) -->
         <section id="coord-overview" class="panel">
           
-          <!-- Top Metrics Bar (Clickable/Expandable) -->
-          <div class="metrics-grid">
-            <div class="metric-card bg-glass metric-card-interactive" id="metricCardRequires" data-metric="requires" onclick="toggleMetricDrawer('requires')" role="button" tabindex="0" title="Click to view sections requiring work">
-              <div class="metric-icon val-red">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-              </div>
-              <div class="metric-body">
-                <div class="label">Requires Work <span class="metric-expand-indicator">▾</span></div>
-                <div class="value text-red" id="metricRequires">0</div>
-              </div>
-            </div>
-            <div class="metric-card bg-glass metric-card-interactive" id="metricCardProgressing" data-metric="progressing" onclick="toggleMetricDrawer('progressing')" role="button" tabindex="0" title="Click to view progressing sections">
-              <div class="metric-icon val-yellow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
-              </div>
-              <div class="metric-body">
-                <div class="label">Progressing <span class="metric-expand-indicator">▾</span></div>
-                <div class="value text-yellow" id="metricProgressing">0</div>
-              </div>
-            </div>
-            <div class="metric-card bg-glass metric-card-interactive" id="metricCardDemonstrated" data-metric="demonstrated" onclick="toggleMetricDrawer('demonstrated')" role="button" tabindex="0" title="Click to view demonstrated sections">
-              <div class="metric-icon val-green">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-              </div>
-              <div class="metric-body">
-                <div class="label">Demonstrated <span class="metric-expand-indicator">▾</span></div>
-                <div class="value text-green" id="metricDemonstrated">0</div>
-              </div>
-            </div>
-            <div class="metric-card bg-glass metric-card-interactive" id="metricCardTotal" data-metric="total" onclick="toggleMetricDrawer('total')" role="button" tabindex="0" title="Click to view all sections">
-              <div class="metric-icon val-blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-              </div>
-              <div class="metric-body">
-                <div class="label">Total Logs <span class="metric-expand-indicator">▾</span></div>
-                <div class="value text-blue" id="metricTotalLogs">0</div>
-              </div>
-            </div>
+          <!-- View Switcher: By Section vs By Repertoire -->
+          <div class="segmented-control" id="overviewModeControl" style="margin-bottom: 14px;">
+            <button type="button" class="segment-btn active" id="btnViewBySection">By Section</button>
+            <button type="button" class="segment-btn" id="btnViewByRepertoire">By Repertoire</button>
           </div>
 
-          <!-- Expandable Metrics Drawer (Woodwinds -> Brass -> Percussion -> Strings) -->
-          <div id="metricsExpandedDrawer" class="metrics-expanded-drawer bg-glass" style="display: none; margin-bottom: 14px;">
-            <div class="metrics-drawer-header flex-row justify-between items-center">
-              <div class="flex-row items-center gap-8">
-                <span class="badge" id="metricsDrawerBadge">Requires Work</span>
-                <span class="xs muted" id="metricsDrawerCount">0 sections</span>
-              </div>
-              <button type="button" id="metricsDrawerCloseBtn" class="btn btn-xs btn-outline">Close ✕</button>
-            </div>
-            <div class="metrics-drawer-body" id="metricsDrawerBody">
-              <!-- Dynamically rendered sorted by Woodwinds -> Brass -> Percussion -> Strings -->
-            </div>
-          </div>
-
-          <!-- Segmented Tab Switcher for Bird's-Eye Focus -->
-          <div class="segmented-control" id="overviewTabControl" style="margin-bottom: 12px;">
-            <button type="button" class="segment-btn active" data-subtab="subtab-matrix">Section Health</button>
-            <button type="button" class="segment-btn" data-subtab="subtab-attention">Attention Flags</button>
-          </div>
-
-          <!-- Subtab 1: Section Health Matrix -->
-          <div id="subtab-matrix" class="overview-subtab active">
+          <!-- 1A. By Section View (Super Clean List: Section Only, Tap to Expand Full Log) -->
+          <div id="overviewBySectionView" class="overview-view-pane active">
             <div class="dashboard-card bg-glass">
               <div class="card-header flex-row justify-between items-center mb-8">
-                <h2>Instrument Section Health</h2>
+                <h2>Sections</h2>
                 <span class="xs muted" id="matrixCountBadge">All Sections</span>
               </div>
-              <div class="grid-layout grid-2 gap-8" id="overviewSectionMatrix">
-                <!-- Populated dynamically via JS -->
+              <div class="flex-column gap-6" id="overviewSectionMatrix">
+                <!-- Populated dynamically via JS: Section Name + Family Badge only, tap to expand -->
               </div>
             </div>
           </div>
 
-          <!-- Subtab 2: Attention Flags -->
-          <div id="subtab-attention" class="overview-subtab" style="display: none;">
-            <div class="dashboard-card bg-glass">
-              <div class="card-header mb-8">
-                <h2>Priority Attention Targets</h2>
-                <p class="muted small">Sections flagged by conductor or requiring developmental support.</p>
+          <!-- 1B. By Repertoire View (Piece-by-Piece Section Logs) -->
+          <div id="overviewByRepertoireView" class="overview-view-pane" style="display: none;">
+            <div class="dashboard-card bg-glass mb-12">
+              <div class="card-header flex-row justify-between items-center mb-8">
+                <h2>Repertoire Pieces</h2>
+                <button type="button" class="btn btn-xs btn-primary" id="btnOpenAddRepertoireModal">+ Add Repertoire</button>
               </div>
-              <div class="flex-column gap-8" id="overviewAttentionList">
-                <!-- Populated dynamically via JS -->
+              <div id="overviewRepertoirePills" class="flex-row flex-wrap gap-6 mb-4">
+                <!-- Repertoire selector pills populated dynamically -->
+              </div>
+            </div>
+
+            <div class="dashboard-card bg-glass">
+              <div class="card-header flex-row justify-between items-center mb-8">
+                <h2 id="repertoireViewTitle">Repertoire Logs</h2>
+                <span class="xs muted" id="repertoireLogsCount">0 Logs</span>
+              </div>
+              <div class="flex-column gap-6" id="overviewRepertoireLogsList">
+                <!-- Populated dynamically via JS based on selected repertoire -->
               </div>
             </div>
           </div>
@@ -205,7 +161,7 @@
               </div>
               <div class="min-w-0" style="flex: 1 1 auto;">
                 <div style="font-size: 0.92rem; font-weight: 600; color: #f1f5f9;">Rehearsal AI Assistant</div>
-                <div class="xs muted" style="line-height: 1.35; margin-top: 2px;">Instant pedagogical summaries grounded in uploaded rehearsal records.</div>
+                <div class="xs muted" style="line-height: 1.35; margin-top: 2px;">Instant pedagogical summaries grounded in conductor notes & tutor logs.</div>
               </div>
             </div>
             <button type="button" id="overviewOpenAiBtn" class="btn btn-primary btn-sm w-full" style="justify-content: center; text-align: center;">Launch AI Assistant</button>
@@ -216,17 +172,29 @@
         <!-- 2. Conductor Tutti Rehearsal Notes Panel -->
         <section id="coord-notes" class="panel">
           <div class="grid-layout grid-1-2">
-            <!-- Left Form: Create Rehearsal Notes -->
+            <!-- Left Form: Create / Upload Rehearsal Notes -->
             <div class="dashboard-card bg-glass">
               <div class="card-header">
                 <h2>Record Tutti Rehearsal Notes</h2>
               </div>
-              <p class="muted small mb-12">Log general notes from the conductor and targeted observations for sections to address in their sectional lessons.</p>
+              <p class="muted small mb-12">Upload conductor rehearsal notes via Word Doc, PDF, or enter directly. All uploaded notes automatically ground the Rehearsal AI Assistant.</p>
+              
               <form id="tuttiNotesForm" class="flex-column gap-14">
+                <!-- Word Doc / PDF Upload Zone -->
+                <div class="form-field" style="background: rgba(56, 189, 248, 0.05); border: 1.5px dashed rgba(56, 189, 248, 0.35); border-radius: var(--radius-sm); padding: 12px; text-align: center;">
+                  <label for="notesDocUpload" style="cursor: pointer; display: block;">
+                    <div style="font-size: 1.5rem; margin-bottom: 4px;">📄</div>
+                    <strong style="color: #38bdf8; font-size: 0.88rem;">Upload Rehearsal Document</strong>
+                    <div class="xs muted" style="margin-top: 2px;">Word Doc (.docx, .doc), PDF (.pdf), or Markdown (.md, .txt)</div>
+                  </label>
+                  <input type="file" id="notesDocUpload" accept=".docx,.doc,.pdf,.txt,.md" style="display: none;" />
+                  <div id="notesDocFileInfo" class="xs" style="margin-top: 6px; color: var(--status-green); display: none;"></div>
+                </div>
+
                 <div class="grid-2 gap-10">
                   <div class="form-field">
-                    <label for="notesDate">Rehearsal Date</label>
-                    <input type="date" id="notesDate" class="input-control" required />
+                    <label for="notesDate">Rehearsal Date & Time</label>
+                    <input type="datetime-local" id="notesDate" class="input-control" required />
                   </div>
                   <div class="form-field">
                     <label for="notesRepertoireSelect">Repertoire Rehearsed</label>
@@ -236,20 +204,20 @@
                 </div>
 
                 <div class="form-field">
-                  <label for="notesGeneralSummary">Conductor's General Notes</label>
-                  <textarea id="notesGeneralSummary" class="textarea-control" placeholder="Overall notes (e.g. general energy, tempos, tutti coordination highlights)..." required></textarea>
+                  <label for="notesGeneralSummary">Conductor's Rehearsal Overview</label>
+                  <textarea id="notesGeneralSummary" class="textarea-control" placeholder="Overall rehearsal summary, tempo targets, tutti balance, or key directives..." required></textarea>
                 </div>
 
                 <div class="divider" style="margin: 10px 0; border-top: 1px dashed var(--border-subtle);"></div>
                 
                 <div class="flex-row justify-between items-center">
-                  <h3 style="font-size: 1rem; font-weight: 600;">Feedback for Section</h3>
+                  <h3 style="font-size: 1rem; font-weight: 600;">Specific notes for section</h3>
                   <button type="button" id="addObservationRowBtn" class="btn btn-xs btn-outline">+ Add Section</button>
                 </div>
-                <p class="muted small">Add target feedback points for specific sections. Tutors will see these and plan sectionals around them.</p>
+                <p class="muted small">Targeted notes for individual sections. Tutors will see these and focus their upcoming sectional lessons accordingly.</p>
 
                 <div id="notesObservationsContainer" class="flex-column gap-12" style="margin-top: 8px;">
-                  <!-- Dynamic observation rows will be inserted here -->
+                  <!-- Dynamic section observation rows inserted here -->
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="margin-top: 12px;">Publish Rehearsal Notes</button>
@@ -263,7 +231,7 @@
                 <span class="badge" id="notesCountBadge">0 Logs</span>
               </div>
               <div class="flex-column gap-12" id="tuttiRehearsalsList" style="margin-top: 14px;">
-                <!-- Populated dynamically -->
+                <!-- Clickable, expandable rehearsal log entries populated dynamically -->
               </div>
             </div>
           </div>
@@ -321,7 +289,7 @@
           <div class="dashboard-card bg-glass">
             <div class="card-header-actions flex-wrap gap-12">
               <div>
-                <h2>Tutor Questions Feed</h2>
+                <h2>Tutor Questions</h2>
                 <p class="muted small">Review and answer questions submitted by section tutors.</p>
               </div>
               <div class="filter-controls">
@@ -620,38 +588,20 @@
             <div class="ai-avatar-badge">✨</div>
             <div>
               <h3 id="aiModalTitle" style="font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text-main);">RehearsalIQ AI Assistant</h3>
-              <div class="xs muted">Grounded strictly in uploaded rehearsal assets & logs</div>
+              <div class="xs muted">Grounded strictly in conductor rehearsal notes & tutor sectional logs</div>
             </div>
           </div>
           <div class="flex-row items-center gap-8">
-            <span class="badge badge-accent" id="aiGroundedBadge">Asset Grounded</span>
+            <button type="button" id="aiClearHistoryBtn" class="btn btn-xs btn-outline" title="Clear Chat History">Clear Chat</button>
             <button type="button" id="aiModalCloseBtn" class="ai-modal-close" aria-label="Close Chatbot">&times;</button>
           </div>
         </div>
 
-        <!-- Grounded Assets Indexing Bar -->
-        <div class="ai-asset-strip">
-          <div class="flex-row items-center justify-between gap-8 flex-wrap">
-            <div class="flex-row items-center gap-6">
-              <span class="pulse-dot" style="background-color: var(--status-green); box-shadow: 0 0 6px var(--status-green);"></span>
-              <span class="xs" id="aiAssetStatusText" style="color: var(--text-muted);">Grounded on <strong id="aiAssetCount">0</strong> assets & records</span>
-            </div>
-            <div class="flex-row gap-6">
-              <input type="file" id="aiAssetFileInput" accept=".txt,.md,.pdf,.csv,.json,.doc,.docx" style="display: none;" multiple />
-              <button type="button" id="aiUploadAssetBtn" class="btn btn-xs btn-outline">+ Upload Asset</button>
-              <button type="button" id="aiClearHistoryBtn" class="btn btn-xs btn-outline" title="Clear Chat History">Clear Chat</button>
-            </div>
-          </div>
-          <!-- Uploaded Assets Pills Bar -->
-          <div id="aiUploadedAssetsList" class="flex-row flex-wrap gap-4" style="margin-top: 6px;"></div>
-        </div>
-
-        <!-- Quick Suggested Prompt Chips -->
+        <!-- Quick Suggested Prompt Chips (Clean 3 Prompts) -->
         <div class="ai-quick-prompts" id="aiQuickPrompts">
-          <button type="button" class="ai-prompt-chip" data-prompt="Summarize this week's tutti rehearsal highlights and conductor observations.">📋 Weekly Tutti Summary</button>
-          <button type="button" class="ai-prompt-chip" data-prompt="Which sections require further development and what are their specific challenges?">⚠️ Priority Development Targets</button>
-          <button type="button" class="ai-prompt-chip" data-prompt="Analyze student reflections and identify common confidence bottlenecks.">🎓 Student Reflection Bottlenecks</button>
-          <button type="button" class="ai-prompt-chip" data-prompt="Compare progress and tempo stability between woodwinds and brass.">🎷 Woodwinds vs Brass Progress</button>
+          <button type="button" class="ai-prompt-chip" data-prompt="Summarize this week's tutti rehearsal highlights and conductor observations.">📋 Weekly Rehearsal Summary</button>
+          <button type="button" class="ai-prompt-chip" data-prompt="Which sections require specific focus and what are their targeted challenges?">⚠️ Sections Needing Specific Focus</button>
+          <button type="button" class="ai-prompt-chip" data-prompt="Break down student rehearsal progress and attainment across current repertoire.">🎻 Repertoire Progress Breakdown</button>
         </div>
 
         <!-- Chat Message Stream -->
@@ -661,22 +611,50 @@
 
         <!-- Chat Input Form -->
         <form id="aiChatForm" class="ai-chat-input-zone">
-          <textarea id="aiChatInput" class="ai-chat-textarea" placeholder="Ask for analysis, summaries, or sectional insights from uploaded assets..." rows="1" required></textarea>
+          <textarea id="aiChatInput" class="ai-chat-textarea" placeholder="Ask for analysis, summaries, or sectional insights from rehearsal records..." rows="1" required></textarea>
           <button type="submit" id="aiChatSendBtn" class="btn btn-primary ai-chat-send-btn" aria-label="Send message">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
           </button>
         </form>
         
         <div class="ai-footer-note">
-          <span class="xs muted">Strict Guardrail: Answers are generated strictly from uploaded rehearsal assets, conductor logs, and sectional submissions. Outside speculation is prevented.</span>
+          <span class="xs muted">Strict Guardrail: Answers are generated strictly from conductor rehearsal notes and tutor sectional logs. Outside speculation is prevented.</span>
         </div>
 
       </div>
     </div>
 
+    <!-- Add Repertoire Modal Dialog -->
+    <div id="addRepertoireModal" class="ai-modal-overlay" style="display: none;">
+      <div class="ai-modal-window bg-glass animate-scale-up" style="max-width: 440px; height: auto; max-height: 90vh;" role="dialog" aria-modal="true" aria-labelledby="addRepertoireModalTitle">
+        <div class="ai-modal-header">
+          <h3 id="addRepertoireModalTitle" style="font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text-main);">Add Repertoire Piece</h3>
+          <button type="button" id="addRepertoireModalCloseBtn" class="ai-modal-close" aria-label="Close">&times;</button>
+        </div>
+        <form id="addRepertoireForm" class="flex-column gap-12" style="padding: 16px;">
+          <div class="form-field">
+            <label for="newRepertoireTitle">Piece Title & Composer</label>
+            <input type="text" id="newRepertoireTitle" class="input-control" placeholder="e.g. Dvořák: Symphony No. 9 'New World'" required />
+          </div>
+          <div class="form-field">
+            <label for="newRepertoireEnsemble">Ensemble Group</label>
+            <select id="newRepertoireEnsemble" class="input-control" required>
+              <option value="NUSSO">NUSSO (Symphony Orchestra)</option>
+              <option value="NUSWS">NUSWS (Wind Symphony)</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="newRepertoireNotes">Notes / Movement details (optional)</label>
+            <textarea id="newRepertoireNotes" class="textarea-control" placeholder="Key movements or focus bars..." style="height: 60px;"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary w-full" style="justify-content: center; margin-top: 4px;">Save Repertoire Piece</button>
+        </form>
+      </div>
+    </div>
+
   </div>
 
-  <script src="app.js?v=6"></script>
-  <script src="edit-mode.js?v=6"></script>
+  <script src="app.js?v=7"></script>
+  <script src="edit-mode.js?v=7"></script>
 </body>
 </html>
